@@ -40,7 +40,7 @@ jobs:
             --repo https://github.com/${{ github.repository }} \
             --path charts/spv-wallet-regression-sqlite \
             --dest-server https://kubernetes.default.svc \
-            --dest-namespace default \
+            --dest-namespace sqlite-instance \
             --revision HEAD \
             --sync-policy automated \
             --upsert \
@@ -57,7 +57,7 @@ jobs:
             --repo https://github.com/${{ github.repository }} \
             --path charts/spv-wallet-regression-postgres \
             --dest-server https://kubernetes.default.svc \
-            --dest-namespace default \
+            --dest-namespace postgres-instance \
             --revision HEAD \
             --sync-policy automated \
             --upsert \
