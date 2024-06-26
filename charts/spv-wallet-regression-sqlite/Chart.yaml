@@ -1,0 +1,11 @@
+apiVersion: v2
+name: spv-wallet-regression
+description: A Helm chart used to deploy spv-wallet-stack for regression tests.
+
+type: application
+version: 0.1.0
+
+dependencies:
+  - name: spv-wallet-stack
+    version: 0.8.2
+    repository: https://bitcoin-sv.github.io/spv-wallet-helm
