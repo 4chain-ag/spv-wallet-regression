@@ -1,4 +1,4 @@
-name: Deploy and Manage Application
+name: Regression tests for spv-wallet
 
 on:
   workflow_dispatch:
@@ -40,7 +40,7 @@ jobs:
           echo "  domainName: ${DOMAIN_NAME}" >> values-sqlite.yaml
           echo "spv-wallet:" >> values-sqlite.yaml
           echo "  image:" >> values-sqlite.yaml
-          echo "    tag: ${github.event.inputs.image_tag}" >> values-sqlite.yaml
+          echo "    tag: ${{ github.event.inputs.image_tag }}" >> values-sqlite.yaml
         shell: bash
 
       - name: Deploy SQLite Instance
@@ -63,7 +63,7 @@ jobs:
           echo "  domainName: ${DOMAIN_NAME}" >> values-postgres.yaml
           echo "spv-wallet:" >> values-postgres.yaml
           echo "  image:" >> values-postgres.yaml
-          echo "    tag: ${github.event.inputs.image_tag}" >> values-postgres.yaml
+          echo "    tag: ${{ github.event.inputs.image_tag }}" >> values-postgres.yaml
         shell: bash
 
       - name: Deploy Postgres Instance
