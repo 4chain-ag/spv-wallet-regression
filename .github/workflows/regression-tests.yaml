@@ -1,0 +1,83 @@
+name: Regression tests for SPV-Wallet
+
+on:
+  workflow_dispatch:
+    inputs:
+      commit_sha:
+        description: 'Commit SHA'
+        required: true
+        default: 'latest'
+      image_tag:
+        description: 'Docker Image Tag'
+        required: true
+        default: 'latest'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to ArgoCD
+        run: |
+          argocd login $ARGOCD_SERVER --username $ARGOCD_USERNAME --password $ARGOCD_PASSWORD --insecure
+
+      - name: Deploy SQLite Instance
+        run: |
+          COMMIT_SHA=${{ github.event.inputs.commit_sha }}
+          DOMAIN_NAME="test-${COMMIT_SHA}-sqlite.dev.4chain.space"
+          helm upgrade --install spv-wallet-instance-sqlite ./charts/spv-wallet-regression-sqlite \
+            --set global.domainName=${DOMAIN_NAME} \
+            --set spv-wallet.image.tag=${{ github.event.inputs.image_tag }}
+          argocd app create spv-wallet-instance-sqlite \
+            --repo https://github.com/${{ github.repository }} \
+            --path charts/spv-wallet-regression-sqlite \
+            --dest-server https://kubernetes.default.svc \
+            --dest-namespace default \
+            --revision HEAD \
+            --sync-policy automated
+
+      - name: Deploy Postgres Instance
+        run: |
+          COMMIT_SHA=${{ github.event.inputs.commit_sha }}
+          DOMAIN_NAME="test-${COMMIT_SHA}-postgres.dev.4chain.space"
+          helm upgrade --install spv-wallet-instance-postgres ./charts/spv-wallet-regression-postgres \
+            --set global.domainName=${DOMAIN_NAME} \
+            --set spv-wallet.image.tag=${{ github.event.inputs.image_tag }}
+          argocd app create spv-wallet-instance-postgres \
+            --repo https://github.com/${{ github.repository }} \
+            --path charts/spv-wallet-regression-postgres \
+            --dest-server https://kubernetes.default.svc \
+            --dest-namespace default \
+            --revision HEAD \
+            --sync-policy automated
+
+      - name: Wait for Applications to be Healthy
+        run: |
+          for i in {1..5}; do
+            STATUS_SQLITE=$(argocd app get spv-wallet-instance-sqlite -o json | jq -r '.status.health.status')
+            STATUS_POSTGRES=$(argocd app get spv-wallet-instance-postgres -o json | jq -r '.status.health.status')
+            SYNC_SQLITE=$(argocd app get spv-wallet-instance-sqlite -o json | jq -r '.status.sync.status')
+            SYNC_POSTGRES=$(argocd app get spv-wallet-instance-postgres -o json | jq -r '.status.sync.status')
+            if [[ "$STATUS_SQLITE" == "Healthy" && "$STATUS_POSTGRES" == "Healthy" && "$SYNC_SQLITE" == "Synced" && "$SYNC_POSTGRES" == "Synced" ]]; then
+              echo "Both applications are synced and healthy"
+              break
+            fi
+            if [[ $i -eq 5 ]]; then
+              echo "Applications did not become healthy and synced in time"
+              exit 1
+            fi
+            echo "Waiting for applications to be healthy and synced..."
+            sleep 5
+          done
+
+      - name: Perform Task
+        run: echo "Applications are synced and healthy. Performing task..."
+
+      - name: Remove SQLite Instance
+        run: argocd app delete spv-wallet-instance-sqlite --yes
+
+      - name: Remove Postgres Instance
+        run: argocd app delete spv-wallet-instance-postgres --yes

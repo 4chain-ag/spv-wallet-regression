@@ -6,7 +6,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: git@github.com:4chain-ag/k8s-config.git
+    repoURL: git@github.com:4chain-ag/spv-wallet-regression.git
     targetRevision: HEAD
     path: devops-tools-defs
   destination:

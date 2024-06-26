@@ -34,10 +34,6 @@ if [ ! -f ~/.ssh/argo_github_ssh_key ]; then
     ssh-keygen -t ed25519 -f ~/.ssh/argo_github_ssh_key -N ""
 fi
 
-# Setting up GHCR token
-echo -e "${GREEN}[+] Setting up GHCR token to get app packages...${NC}"
-./set-ghcr-token.sh
-
 # Show public key and ask user to add to GitHub
 echo -e "${YELLOW}Please add the following public key to your GitHub deploy keys:${NC}"
 cat ~/.ssh/argo_github_ssh_key.pub

@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: uptime-kuma-service
+  namespace: uptime-kuma
+  labels:
+    app.kubernetes.io/name: uptime-kuma
+    app.kubernetes.io/instance: uptime-kuma-main
+    app.kubernetes.io/version: 1.0.0
+    app.kubernetes.io/component: monitor
+    app.kubernetes.io/part-of: monitoring
+    app.kubernetes.io/managed-by: kubectl
+spec:
+  selector:
+    app.kubernetes.io/instance: uptime-kuma-main
+  type: ClusterIP
+  ports:
+    - name: web
+      port: 80
+      targetPort: web
+

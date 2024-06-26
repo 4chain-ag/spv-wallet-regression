@@ -1,0 +1,5 @@
+apiVersion: v2
+name: uptime-kuma
+description: Chart for uptime-kuma monitoring tool.
+type: application
+version: 0.1.0

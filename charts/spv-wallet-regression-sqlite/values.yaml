@@ -14,6 +14,12 @@ spv-wallet:
     repository: bsvb/spv-wallet
     pullPolicy: IfNotPresent
     tag: ''
+  config:
+    db:
+      datastore:
+        engine: sqlite
+  postgresql:
+    enabled: false
 block-headers-service:
   enabled: true
 spv-wallet-admin:

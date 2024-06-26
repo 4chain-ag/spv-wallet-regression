@@ -1,11 +1,11 @@
 apiVersion: v2
-name: spv-wallet-regression
-description: A Helm chart used to deploy spv-wallet-stack for regression tests.
+name: spv-wallet-regression-sqlite
+description: A Helm chart used to deploy spv-wallet-stack for regression tests - uses sqlite db engine by default.
 
 type: application
 version: 0.1.0
 
 dependencies:
   - name: spv-wallet-stack
-    version: 0.8.2
+    version: 0.8.3
     repository: https://bitcoin-sv.github.io/spv-wallet-helm
