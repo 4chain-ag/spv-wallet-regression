@@ -3,7 +3,7 @@ argo-cd:
   ## Ref: https://github.com/argoproj/argo-cd
   ## Globally shared configuration
   global:
-    domain: argo.dev.4chain.space
+    domain: cd.dev.4chain.space
   ## Server
   server:
     # Argo CD server ingress configuration
