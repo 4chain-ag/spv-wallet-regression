@@ -18,6 +18,11 @@ spv-wallet:
     enabled: false
 block-headers-service:
   enabled: true
+  config:
+    db:
+      engine: sqlite
+  postgresql:
+    enabled: false
 spv-wallet-admin:
   enabled: false
 spv-wallet-web:

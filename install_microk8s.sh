@@ -57,6 +57,11 @@ else
     exit 1
 fi
 
+# Execute create-regression-tests.sh to create namespaces required for regression tests
+echo -e "${GREEN}[+] Running create-regression-tests.sh...${NC}"
+chmod +x ./create-regression-namespaces.sh
+sudo ./create-regression-namespaces.sh
+
 argocdpswd=$(sudo microk8s kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
 printf "\n${GREEN}Argo CD username: admin\npassword: ${NC}%s\n\n" "$argocdpswd"
 echo -e "${GREEN}[+] Completed!${NC}"
