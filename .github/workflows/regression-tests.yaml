@@ -6,11 +6,9 @@ on:
       commit_sha:
         description: 'Commit SHA'
         required: true
-        default: 'latest'
       image_tag:
         description: 'Docker Image Tag'
         required: true
-        default: 'latest'
 
 jobs:
   deploy:
@@ -38,72 +36,73 @@ jobs:
         run: |
           COMMIT_SHA=${{ github.event.inputs.commit_sha }}
           DOMAIN_NAME="test-${COMMIT_SHA}-sqlite.dev.4chain.space"
-          cat <<EOF > values-sqlite.yaml
-global:
-  domainName: ${DOMAIN_NAME}
-spv-wallet:
-  image:
-    tag: ${github.event.inputs.image_tag}
-  EOF
+          echo "global:" > values-sqlite.yaml
+          echo "  domainName: ${DOMAIN_NAME}" >> values-sqlite.yaml
+          echo "spv-wallet:" >> values-sqlite.yaml
+          echo "  image:" >> values-sqlite.yaml
+          echo "    tag: ${github.event.inputs.image_tag}" >> values-sqlite.yaml
+        shell: bash
 
-- name: Deploy SQLite Instance
-  run: |
-    argocd app create spv-wallet-instance-sqlite \
-      --repo https://github.com/${{ github.repository }} \
-      --path charts/spv-wallet-regression-sqlite \
-      --dest-server https://kubernetes.default.svc \
-      --dest-namespace default \
-      --revision HEAD \
-      --values values-sqlite.yaml \
-      --sync-policy automated
+      - name: Deploy SQLite Instance
+        run: |
+          argocd app create spv-wallet-instance-sqlite \
+            --repo https://github.com/${{ github.repository }} \
+            --path charts/spv-wallet-regression-sqlite \
+            --dest-server https://kubernetes.default.svc \
+            --dest-namespace default \
+            --revision HEAD \
+            --values values-sqlite.yaml \
+            --sync-policy automated
+        shell: bash
 
-- name: Prepare Values File for Postgres
-  run: |
-    COMMIT_SHA=${{ github.event.inputs.commit_sha }}
-    DOMAIN_NAME="test-${COMMIT_SHA}-postgres.dev.4chain.space"
-    cat <<EOF > values-postgres.yaml
-global:
-  domainName: ${DOMAIN_NAME}
-spv-wallet:
-  image:
-    tag: ${github.event.inputs.image_tag}
-  EOF
+      - name: Prepare Values File for Postgres
+        run: |
+          COMMIT_SHA=${{ github.event.inputs.commit_sha }}
+          DOMAIN_NAME="test-${COMMIT_SHA}-postgres.dev.4chain.space"
+          echo "global:" > values-postgres.yaml
+          echo "  domainName: ${DOMAIN_NAME}" >> values-postgres.yaml
+          echo "spv-wallet:" >> values-postgres.yaml
+          echo "  image:" >> values-postgres.yaml
+          echo "    tag: ${github.event.inputs.image_tag}" >> values-postgres.yaml
+        shell: bash
 
-- name: Deploy Postgres Instance
-  run: |
-    argocd app create spv-wallet-instance-postgres \
-      --repo https://github.com/${{ github.repository }} \
-      --path charts/spv-wallet-regression-postgres \
-      --dest-server https://kubernetes.default.svc \
-      --dest-namespace default \
-      --revision HEAD \
-      --values values-postgres.yaml \
-      --sync-policy automated
+      - name: Deploy Postgres Instance
+        run: |
+          argocd app create spv-wallet-instance-postgres \
+            --repo https://github.com/${{ github.repository }} \
+            --path charts/spv-wallet-regression-postgres \
+            --dest-server https://kubernetes.default.svc \
+            --dest-namespace default \
+            --revision HEAD \
+            --values values-postgres.yaml \
+            --sync-policy automated
+        shell: bash
 
-- name: Wait for Applications to be Healthy
-  run: |
-    for i in {1..5}; do
-      STATUS_SQLITE=$(argocd app get spv-wallet-instance-sqlite -o json | jq -r '.status.health.status')
-      STATUS_POSTGRES=$(argocd app get spv-wallet-instance-postgres -o json | jq -r '.status.health.status')
-      SYNC_SQLITE=$(argocd app get spv-wallet-instance-sqlite -o json | jq -r '.status.sync.status')
-      SYNC_POSTGRES=$(argocd app get spv-wallet-instance-postgres -o json | jq -r '.status.sync.status')
-      if [[ "$STATUS_SQLITE" == "Healthy" && "$STATUS_POSTGRES" == "Healthy" && "$SYNC_SQLITE" == "Synced" && "$SYNC_POSTGRES" == "Synced" ]]; then
-        echo "Both applications are synced and healthy"
-        break
-      fi
-      if [[ $i -eq 5 ]]; then
-        echo "Applications did not become healthy and synced in time"
-        exit 1
-      fi
-      echo "Waiting for applications to be healthy and synced..."
-      sleep 5
-    done
+      - name: Wait for Applications to be Healthy
+        run: |
+          for i in {1..5}; do
+            STATUS_SQLITE=$(argocd app get spv-wallet-instance-sqlite -o json | jq -r '.status.health.status')
+            STATUS_POSTGRES=$(argocd app get spv-wallet-instance-postgres -o json | jq -r '.status.health.status')
+            SYNC_SQLITE=$(argocd app get spv-wallet-instance-sqlite -o json | jq -r '.status.sync.status')
+            SYNC_POSTGRES=$(argocd app get spv-wallet-instance-postgres -o json | jq -r '.status.sync.status')
+            if [[ "$STATUS_SQLITE" == "Healthy" && "$STATUS_POSTGRES" == "Healthy" && "$SYNC_SQLITE" == "Synced" && "$SYNC_POSTGRES" == "Synced" ]]; then
+              echo "Both applications are synced and healthy"
+              break
+            fi
+            if [[ $i -eq 5 ]]; then
+              echo "Applications did not become healthy and synced in time"
+              exit 1
+            fi
+            echo "Waiting for applications to be healthy and synced..."
+            sleep 5
+          done
+        shell: bash
 
-- name: Perform Task
-  run: echo "Applications are synced and healthy. Performing task..."
+      - name: Perform Task
+        run: echo "Applications are synced and healthy. Performing task..."
 
-- name: Remove SQLite Instance
-  run: argocd app delete spv-wallet-instance-sqlite --yes
+      - name: Remove SQLite Instance
+        run: argocd app delete spv-wallet-instance-sqlite --yes
 
-- name: Remove Postgres Instance
-  run: argocd app delete spv-wallet-instance-postgres --yes
+      - name: Remove Postgres Instance
+        run: argocd app delete spv-wallet-instance-postgres --yes
