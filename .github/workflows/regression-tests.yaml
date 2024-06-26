@@ -43,8 +43,9 @@ jobs:
             --dest-namespace default \
             --revision HEAD \
             --sync-policy automated \
-            --values-literal global.domainName=${DOMAIN_NAME} \
-            --values-literal spv-wallet.image.tag=${{ github.event.inputs.image_tag }}
+            --upsert \
+            --helm-set global.domainName=${DOMAIN_NAME} \
+            --helm-set spv-wallet.image.tag=${{ github.event.inputs.image_tag }}
         shell: bash
 
       - name: Deploy Postgres Instance
@@ -58,8 +59,9 @@ jobs:
             --dest-namespace default \
             --revision HEAD \
             --sync-policy automated \
-            --values-literal global.domainName=${DOMAIN_NAME} \
-            --values-literal spv-wallet.image.tag=${{ github.event.inputs.image_tag }}
+            --upsert \
+            --helm-set global.domainName=${DOMAIN_NAME} \
+            --helm-set spv-wallet.image.tag=${{ github.event.inputs.image_tag }}
         shell: bash
 
       - name: Wait for Applications to be Healthy
