@@ -32,50 +32,34 @@ jobs:
         run: |
           argocd login $ARGOCD_SERVER --username $ARGOCD_USERNAME --password $ARGOCD_PASSWORD --insecure
 
-      - name: Prepare Values File for SQLite
+      - name: Deploy SQLite Instance
         run: |
           COMMIT_SHA=${{ github.event.inputs.commit_sha }}
           DOMAIN_NAME="test-${COMMIT_SHA}-sqlite.dev.4chain.space"
-          echo "global:" > values-sqlite.yaml
-          echo "  domainName: ${DOMAIN_NAME}" >> values-sqlite.yaml
-          echo "spv-wallet:" >> values-sqlite.yaml
-          echo "  image:" >> values-sqlite.yaml
-          echo "    tag: ${{ github.event.inputs.image_tag }}" >> values-sqlite.yaml
-        shell: bash
-
-      - name: Deploy SQLite Instance
-        run: |
           argocd app create spv-wallet-instance-sqlite \
             --repo https://github.com/${{ github.repository }} \
             --path charts/spv-wallet-regression-sqlite \
             --dest-server https://kubernetes.default.svc \
             --dest-namespace default \
             --revision HEAD \
-            --values values-sqlite.yaml \
-            --sync-policy automated
-        shell: bash
-
-      - name: Prepare Values File for Postgres
-        run: |
-          COMMIT_SHA=${{ github.event.inputs.commit_sha }}
-          DOMAIN_NAME="test-${COMMIT_SHA}-postgres.dev.4chain.space"
-          echo "global:" > values-postgres.yaml
-          echo "  domainName: ${DOMAIN_NAME}" >> values-postgres.yaml
-          echo "spv-wallet:" >> values-postgres.yaml
-          echo "  image:" >> values-postgres.yaml
-          echo "    tag: ${{ github.event.inputs.image_tag }}" >> values-postgres.yaml
+            --sync-policy automated \
+            --values-literal global.domainName=${DOMAIN_NAME} \
+            --values-literal spv-wallet.image.tag=${{ github.event.inputs.image_tag }}
         shell: bash
 
       - name: Deploy Postgres Instance
         run: |
+          COMMIT_SHA=${{ github.event.inputs.commit_sha }}
+          DOMAIN_NAME="test-${COMMIT_SHA}-postgres.dev.4chain.space"
           argocd app create spv-wallet-instance-postgres \
             --repo https://github.com/${{ github.repository }} \
             --path charts/spv-wallet-regression-postgres \
             --dest-server https://kubernetes.default.svc \
             --dest-namespace default \
             --revision HEAD \
-            --values values-postgres.yaml \
-            --sync-policy automated
+            --sync-policy automated \
+            --values-literal global.domainName=${DOMAIN_NAME} \
+            --values-literal spv-wallet.image.tag=${{ github.event.inputs.image_tag }}
         shell: bash
 
       - name: Wait for Applications to be Healthy
