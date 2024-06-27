@@ -1,25 +1,23 @@
-global:
-  storageClass: openebs-hostpath
-  ingress:
-    className: traefik
-    additionalAnnotations:
-      cert-manager.io/cluster-issuer: lets-encrypt
-spv-wallet:
-  enabled: true
-  image:
-    repository: bsvb/spv-wallet
-    pullPolicy: IfNotPresent
-    tag: ''
+spv-wallet-stack:
+  global:
+    storageClass: openebs-hostpath
+    ingress:
+      className: traefik
+      additionalAnnotations:
+        cert-manager.io/cluster-issuer: lets-encrypt
 
-block-headers-service:
-  enabled: true
-  config:
-    db:
-      engine: sqlite
-  postgresql:
+  spv-wallet:
+    enabled: true
+    image:
+      repository: bsvb/spv-wallet
+      pullPolicy: IfNotPresent
+      tag: ''
+
+  block-headers-service:
+    enabled: true
+
+  spv-wallet-admin:
     enabled: false
 
-spv-wallet-admin:
-  enabled: false
-spv-wallet-web:
-  enabled: false
+  spv-wallet-web:
+    enabled: false

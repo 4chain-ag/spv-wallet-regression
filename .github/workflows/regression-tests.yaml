@@ -3,9 +3,6 @@ name: Regression tests for spv-wallet
 on:
   workflow_dispatch:
     inputs:
-      commit_sha:
-        description: 'Commit SHA'
-        required: true
       image_tag:
         description: 'Docker Image Tag'
         required: true
@@ -13,7 +10,8 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
+    env:
+      TEST_ID: ${{ github.run_id }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -34,9 +32,8 @@ jobs:
 
       - name: Deploy SQLite Instance
         run: |
-          COMMIT_SHA=${{ github.event.inputs.commit_sha }}
-          DOMAIN_NAME="test-${COMMIT_SHA}-sqlite.dev.4chain.space"
-          argocd app create spv-wallet-instance-sqlite \
+          DOMAIN_NAME="test-${TEST_ID}-sqlite.dev.4chain.space"
+          argocd app create spv-wallet-instance-sqlite-${TEST_ID} \
             --repo https://github.com/${{ github.repository }} \
             --path charts/spv-wallet-regression-sqlite \
             --dest-server https://kubernetes.default.svc \
@@ -51,9 +48,8 @@ jobs:
 
       - name: Deploy Postgres Instance
         run: |
-          COMMIT_SHA=${{ github.event.inputs.commit_sha }}
-          DOMAIN_NAME="test-${COMMIT_SHA}-postgres.dev.4chain.space"
-          argocd app create spv-wallet-instance-postgres \
+          DOMAIN_NAME="test-${TEST_ID}-postgres.dev.4chain.space"
+          argocd app create spv-wallet-instance-postgres-${TEST_ID} \
             --repo https://github.com/${{ github.repository }} \
             --path charts/spv-wallet-regression-postgres \
             --dest-server https://kubernetes.default.svc \
