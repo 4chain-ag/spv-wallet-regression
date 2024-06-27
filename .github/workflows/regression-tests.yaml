@@ -65,10 +65,10 @@ jobs:
       - name: Wait for Applications to be Healthy
         run: |
           for i in {1..5}; do
-            STATUS_SQLITE=$(argocd app get spv-wallet-instance-sqlite --grpc-web -o json | jq -r '.status.health.status')
-            STATUS_POSTGRES=$(argocd app get spv-wallet-instance-postgres --grpc-web -o json | jq -r '.status.health.status')
-            SYNC_SQLITE=$(argocd app get spv-wallet-instance-sqlite --grpc-web -o json | jq -r '.status.sync.status')
-            SYNC_POSTGRES=$(argocd app get spv-wallet-instance-postgres --grpc-web -o json | jq -r '.status.sync.status')
+            STATUS_SQLITE=$(argocd app get spv-wallet-instance-sqlite-${TEST_ID} --grpc-web -o json | jq -r '.status.health.status')
+            STATUS_POSTGRES=$(argocd app get spv-wallet-instance-postgres-${TEST_ID} --grpc-web -o json | jq -r '.status.health.status')
+            SYNC_SQLITE=$(argocd app get spv-wallet-instance-sqlite-${TEST_ID} --grpc-web -o json | jq -r '.status.sync.status')
+            SYNC_POSTGRES=$(argocd app get spv-wallet-instance-postgres-${TEST_ID} --grpc-web -o json | jq -r '.status.sync.status')
             if [[ "$STATUS_SQLITE" == "Healthy" && "$STATUS_POSTGRES" == "Healthy" && "$SYNC_SQLITE" == "Synced" && "$SYNC_POSTGRES" == "Synced" ]]; then
               echo "Both applications are synced and healthy"
               break
@@ -86,7 +86,7 @@ jobs:
         run: echo "Applications are synced and healthy. Performing task..."
 
       - name: Remove SQLite Instance
-        run: argocd app delete spv-wallet-instance-sqlite --yes --grpc-web
+        run: argocd app delete spv-wallet-instance-sqlite-${TEST_ID} --yes --grpc-web
 
       - name: Remove Postgres Instance
-        run: argocd app delete spv-wallet-instance-postgres --yes --grpc-web
+        run: argocd app delete spv-wallet-instance-postgres-${TEST_ID} --yes --grpc-web
