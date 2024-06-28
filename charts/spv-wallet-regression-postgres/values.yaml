@@ -12,6 +12,9 @@ spv-wallet-stack:
       repository: bsvb/spv-wallet
       pullPolicy: IfNotPresent
       tag: ''
+    config:
+      auth:
+        admin_key: xpub661MyMwAqRbcFgfmdkPgE2m5UjHXu9dj124DbaGLSjaqVESTWfCD4VuNmEbVPkbYLCkykwVZvmA8Pbf8884TQr1FgdG2nPoHR8aB36YdDQh
 
   block-headers-service:
     enabled: true
