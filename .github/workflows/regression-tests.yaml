@@ -43,7 +43,7 @@ jobs:
             --upsert \
             --grpc-web \
             --helm-set global.domainName=${DOMAIN_NAME} \
-            --helm-set spv-wallet.image.tag=${{ github.event.inputs.image_tag }}
+            --helm-set spv-wallet-stack.spv-wallet.image.tag=${{ github.event.inputs.image_tag }}
         shell: bash
 
       - name: Deploy Postgres Instance
@@ -59,7 +59,7 @@ jobs:
             --upsert \
             --grpc-web \
             --helm-set global.domainName=${DOMAIN_NAME} \
-            --helm-set spv-wallet.image.tag=${{ github.event.inputs.image_tag }}
+            --helm-set spv-wallet-stack.spv-wallet.image.tag=${{ github.event.inputs.image_tag }}
         shell: bash
 
       - name: Wait for Applications to be Healthy
