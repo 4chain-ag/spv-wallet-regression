@@ -33,7 +33,7 @@ jobs:
       - name: Deploy SQLite Instance
         run: |
           DOMAIN_NAME="test-${TEST_ID}-sqlite.dev.4chain.space"
-          argocd app create reg-sqlite-${TEST_ID} \
+          argocd app create reg-sl-${TEST_ID} \
             --repo https://github.com/${{ github.repository }} \
             --path charts/spv-wallet-regression-sqlite \
             --dest-server https://kubernetes.default.svc \
@@ -49,7 +49,7 @@ jobs:
       - name: Deploy Postgres Instance
         run: |
           DOMAIN_NAME="test-${TEST_ID}-postgres.dev.4chain.space"
-          argocd app create reg-postgres-${TEST_ID} \
+          argocd app create reg-pg-${TEST_ID} \
             --repo https://github.com/${{ github.repository }} \
             --path charts/spv-wallet-regression-postgres \
             --dest-server https://kubernetes.default.svc \
@@ -65,10 +65,10 @@ jobs:
       - name: Wait for Applications to be Healthy
         run: |
           for i in {1..5}; do
-            STATUS_SQLITE=$(argocd app get reg-sqlite-${TEST_ID} --grpc-web -o json | jq -r '.status.health.status')
-            STATUS_POSTGRES=$(argocd app get reg-postgres-${TEST_ID} --grpc-web -o json | jq -r '.status.health.status')
-            SYNC_SQLITE=$(argocd app get reg-sqlite-${TEST_ID} --grpc-web -o json | jq -r '.status.sync.status')
-            SYNC_POSTGRES=$(argocd app get reg-postgres-${TEST_ID} --grpc-web -o json | jq -r '.status.sync.status')
+            STATUS_SQLITE=$(argocd app get reg-sl-${TEST_ID} --grpc-web -o json | jq -r '.status.health.status')
+            STATUS_POSTGRES=$(argocd app get reg-pg-${TEST_ID} --grpc-web -o json | jq -r '.status.health.status')
+            SYNC_SQLITE=$(argocd app get reg-sl-${TEST_ID} --grpc-web -o json | jq -r '.status.sync.status')
+            SYNC_POSTGRES=$(argocd app get reg-pg-${TEST_ID} --grpc-web -o json | jq -r '.status.sync.status')
             if [[ "$STATUS_SQLITE" == "Healthy" && "$STATUS_POSTGRES" == "Healthy" && "$SYNC_SQLITE" == "Synced" && "$SYNC_POSTGRES" == "Synced" ]]; then
               echo "Both applications are synced and healthy"
               break
@@ -86,7 +86,7 @@ jobs:
         run: echo "Applications are synced and healthy. Performing task..."
 
       - name: Remove SQLite Instance
-        run: argocd app delete reg-sqlite-${TEST_ID} --yes --grpc-web
+        run: argocd app delete reg-sl-${TEST_ID} --yes --grpc-web
 
       - name: Remove Postgres Instance
-        run: argocd app delete reg-postgres-${TEST_ID} --yes --grpc-web
+        run: argocd app delete reg-pg-${TEST_ID} --yes --grpc-web
