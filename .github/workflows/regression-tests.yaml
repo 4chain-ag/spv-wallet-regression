@@ -30,21 +30,21 @@ jobs:
         run: |
           argocd login $ARGOCD_SERVER --username $ARGOCD_USERNAME --password $ARGOCD_PASSWORD --insecure --grpc-web
 
-      - name: Deploy SQLite Instance
-        run: |
-          DOMAIN_NAME="test-${TEST_ID}-sqlite.dev.4chain.space"
-          argocd app create reg-sl-${TEST_ID} \
-            --repo https://github.com/${{ github.repository }} \
-            --path charts/spv-wallet-regression-sqlite \
-            --dest-server https://kubernetes.default.svc \
-            --dest-namespace sqlite-instance \
-            --revision HEAD \
-            --sync-policy automated \
-            --upsert \
-            --grpc-web \
-            --helm-set global.domainName=${DOMAIN_NAME} \
-            --helm-set spv-wallet-stack.spv-wallet.image.tag=${{ github.event.inputs.image_tag }}
-        shell: bash
+#      - name: Deploy SQLite Instance
+#        run: |
+#          DOMAIN_NAME="test-${TEST_ID}-sqlite.dev.4chain.space"
+#          argocd app create reg-sl-${TEST_ID} \
+#            --repo https://github.com/${{ github.repository }} \
+#            --path charts/spv-wallet-regression-sqlite \
+#            --dest-server https://kubernetes.default.svc \
+#            --dest-namespace sqlite-instance \
+#            --revision HEAD \
+#            --sync-policy automated \
+#            --upsert \
+#            --grpc-web \
+#            --helm-set global.domainName=${DOMAIN_NAME} \
+#            --helm-set spv-wallet-stack.spv-wallet.image.tag=${{ github.event.inputs.image_tag }}
+#        shell: bash
 
       - name: Deploy Postgres Instance
         run: |
