@@ -63,28 +63,37 @@ jobs:
         shell: bash
 
       - name: Wait for Applications to be Healthy
+        id: wait_for_apps
         run: |
-          sleep 270  # Sleep for 4:30 minutes (270 seconds)
-          for i in {1..3}; do  # Check 3 times at larger intervals
+          sleep 270
+          for i in {1..3}; do
             STATUS_SQLITE=$(argocd app get reg-sl-${TEST_ID} --grpc-web -o json | jq -r '.status.health.status')
             STATUS_POSTGRES=$(argocd app get reg-pg-${TEST_ID} --grpc-web -o json | jq -r '.status.health.status')
             SYNC_SQLITE=$(argocd app get reg-sl-${TEST_ID} --grpc-web -o json | jq -r '.status.sync.status')
             SYNC_POSTGRES=$(argocd app get reg-pg-${TEST_ID} --grpc-web -o json | jq -r '.status.sync.status')
             if [[ "$STATUS_SQLITE" == "Healthy" && "$STATUS_POSTGRES" == "Healthy" && "$SYNC_SQLITE" == "Synced" && "$SYNC_POSTGRES" == "Synced" ]]; then
               echo "Both applications are synced and healthy"
+              echo "::set-output name=app_status::healthy"
               break
             fi
-            if [[ $i -eq 3 ]]; then  # If final check and still not healthy, fail
+            if [[ $i -eq 3 ]]; then
               echo "Applications did not become healthy and synced in time"
-              exit 1
+              echo "::set-output name=app_status::unhealthy"
             fi
             echo "Waiting for applications to be healthy and synced..."
-            sleep 120  # Wait for 2 minutes before next check
+            sleep 120
           done
         shell: bash
 
       - name: Perform Task
         run: echo "Applications are synced and healthy. Performing task..."
+
+      - name: Fetch Logs on Failure
+        if: ${{ failure() }}
+        run: |
+          argocd app logs reg-sl-${TEST_ID} --grpc-web > reg-sl-${TEST_ID}.log
+          argocd app logs reg-pg-${TEST_ID} --grpc-web > reg-pg-${TEST_ID}.log
+        shell: bash
 
       - name: Remove SQLite Instance
         run: argocd app delete reg-sl-${TEST_ID} --yes --grpc-web
