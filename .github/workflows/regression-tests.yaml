@@ -1,17 +1,15 @@
 name: Regression tests for spv-wallet
 
 on:
-  workflow_dispatch:
-    inputs:
-      image_tag:
-        description: 'Docker Image Tag'
-        required: true
+  repository_dispatch:
+    types: [regression_tests]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     env:
-      TEST_ID: ${{ github.run_id }}
+      TEST_ID: ${{ github.event.client_payload.run_id }}
+      IMAGE_TAG: ${{ github.event.client_payload.image_tag }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -43,7 +41,7 @@ jobs:
             --upsert \
             --grpc-web \
             --helm-set global.domainName=${DOMAIN_NAME} \
-            --helm-set spv-wallet-stack.spv-wallet.image.tag=${{ github.event.inputs.image_tag }}
+            --helm-set spv-wallet-stack.spv-wallet.image.tag=${{ env.IMAGE_TAG }}
         shell: bash
 
       - name: Deploy Postgres Instance
@@ -59,7 +57,7 @@ jobs:
             --upsert \
             --grpc-web \
             --helm-set global.domainName=${DOMAIN_NAME} \
-            --helm-set spv-wallet-stack.spv-wallet.image.tag=${{ github.event.inputs.image_tag }}
+            --helm-set spv-wallet-stack.spv-wallet.image.tag=${{ env.IMAGE_TAG }}
         shell: bash
 
       - name: Wait for Applications to be Healthy
@@ -89,7 +87,7 @@ jobs:
         run: echo "Applications are synced and healthy. Performing task..."
 
       - name: Fetch Logs on Failure
-        if: ${{ failure() }}
+        if: ${{ failure() || steps.wait_for_apps.outputs.app_status == 'unhealthy' }}
         run: |
           argocd app logs reg-sl-${TEST_ID} --grpc-web > reg-sl-${TEST_ID}.log
           argocd app logs reg-pg-${TEST_ID} --grpc-web > reg-pg-${TEST_ID}.log
