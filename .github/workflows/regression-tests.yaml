@@ -42,6 +42,7 @@ jobs:
             --grpc-web \
             --helm-set global.domainName=${DOMAIN_NAME} \
             --helm-set spv-wallet-stack.spv-wallet.image.tag=${{ env.IMAGE_TAG }}
+            --helm-set spv-wallet-stack.spv-wallet.image.repository=wregulski/spv-wallet
         shell: bash
 
       - name: Deploy Postgres Instance
@@ -58,6 +59,7 @@ jobs:
             --grpc-web \
             --helm-set global.domainName=${DOMAIN_NAME} \
             --helm-set spv-wallet-stack.spv-wallet.image.tag=${{ env.IMAGE_TAG }}
+            --helm-set spv-wallet-stack.spv-wallet.image.repository=wregulski/spv-wallet
         shell: bash
 
       - name: Wait for Applications to be Healthy
