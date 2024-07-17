@@ -83,8 +83,18 @@ jobs:
           done
         shell: bash
 
-      - name: Perform Task
-        run: echo "Applications are synced and healthy. Performing task..."
+      - name: Run Operator
+        id: run_operator
+        run: |
+          go run operator.go test-${TEST_ID}-sqlite.dev.4chain.space test-${TEST_ID}-postgres.dev.4chain.space
+        shell: bash
+
+      - name: Download and Run External Tests
+        run: |
+          git clone https://github.com/4chain-ag/spv-wallet-regression.git
+          cd spv-wallet-regression
+          task regression-tests
+        shell: bash
 
       - name: Fetch Logs on Failure
         if: ${{ failure() || steps.wait_for_apps.outputs.app_status == 'unhealthy' }}

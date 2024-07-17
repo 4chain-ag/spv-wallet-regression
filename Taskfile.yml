@@ -1,0 +1,10 @@
+version: '3'
+
+tasks:
+  regression-tests:
+    cmds:
+      - go test -v
+    dir: .
+    env:
+      EXAMPLE_VAR1: "{{.EXAMPLE_VAR1}}"
+      EXAMPLE_VAR2: "{{.EXAMPLE_VAR2}}"
