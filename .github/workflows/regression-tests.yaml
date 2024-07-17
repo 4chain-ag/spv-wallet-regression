@@ -42,8 +42,6 @@ jobs:
             --grpc-web \
             --helm-set global.domainName=${DOMAIN_NAME} \
             --helm-set spv-wallet-stack.spv-wallet.image.tag=${{ env.IMAGE_TAG }}
-            # temporary values for testing
-            --helm-set spv-wallet-stack.spv-wallet.image.repository=wregulski/spv-wallet
         shell: bash
 
       - name: Deploy Postgres Instance
@@ -60,8 +58,6 @@ jobs:
             --grpc-web \
             --helm-set global.domainName=${DOMAIN_NAME} \
             --helm-set spv-wallet-stack.spv-wallet.image.tag=${{ env.IMAGE_TAG }}
-            # temporary values for testing
-            --helm-set spv-wallet-stack.spv-wallet.image.repository=wregulski/spv-wallet
         shell: bash
 
       - name: Wait for Applications to be Healthy
@@ -87,10 +83,23 @@ jobs:
           done
         shell: bash
 
+      - name: Install Go
+        run: |
+          wget https://golang.org/dl/go1.22.5.linux-amd64.tar.gz
+          sudo tar -C /usr/local -xzf go1.22.5.linux-amd64.tar.gz
+          export PATH=$PATH:/usr/local/go/bin
+        shell: bash
+
       - name: Run Operator
         id: run_operator
         run: |
+          export PATH=$PATH:/usr/local/go/bin
           go run operator.go test-${TEST_ID}-sqlite.dev.4chain.space test-${TEST_ID}-postgres.dev.4chain.space
+        shell: bash
+
+      - name: Install Task
+        run: |
+          sudo sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
         shell: bash
 
       - name: Download and Run External Tests
