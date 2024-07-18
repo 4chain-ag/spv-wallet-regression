@@ -98,7 +98,7 @@ jobs:
       - name: Install Go
         run: |
           wget https://golang.org/dl/go1.22.5.linux-amd64.tar.gz
-          echo "ac9c723f224969aee624bc34fd34c9e13f2a212d75c71c807de644bb46e112f6  go1.22.5.linux-amd64.tar.gz" > go1.22.5.linux-amd64.tar.gz.sha256
+          echo "904b924d435eaea086515bc63235b192ea441bd8c9b198c507e85009e6e4c7f0  go1.22.5.linux-amd64.tar.gz" > go1.22.5.linux-amd64.tar.gz.sha256
           sha256sum -c go1.22.5.linux-amd64.tar.gz.sha256
           sudo tar -C /usr/local -xzf go1.22.5.linux-amd64.tar.gz
           export PATH=$PATH:/usr/local/go/bin
