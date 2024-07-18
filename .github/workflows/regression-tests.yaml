@@ -5,7 +5,7 @@ on:
     types: [regression_tests]
 
 jobs:
-  deploy:
+  preparation:
     runs-on: ubuntu-latest
     env:
       TEST_ID: ${{ github.event.client_payload.run_id }}
@@ -16,7 +16,7 @@ jobs:
 
       - name: Install ArgoCD CLI
         run: |
-          curl -sLO https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+          curl -sLO https://github.com/argoproj/argo-cd/releases/download/v2.11.5/argocd-linux-amd64
           chmod +x argocd-linux-amd64
           sudo mv argocd-linux-amd64 /usr/local/bin/argocd
 
@@ -85,9 +85,21 @@ jobs:
           done
         shell: bash
 
+  running-tests:
+    runs-on: ubuntu-latest
+    needs: preparation
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          repository: 4chain-ag/spv-wallet-regression
+          path: spv-wallet-regression
+
       - name: Install Go
         run: |
           wget https://golang.org/dl/go1.22.5.linux-amd64.tar.gz
+          echo "ac9c723f224969aee624bc34fd34c9e13f2a212d75c71c807de644bb46e112f6  go1.22.5.linux-amd64.tar.gz" > go1.22.5.linux-amd64.tar.gz.sha256
+          sha256sum -c go1.22.5.linux-amd64.tar.gz.sha256
           sudo tar -C /usr/local -xzf go1.22.5.linux-amd64.tar.gz
           export PATH=$PATH:/usr/local/go/bin
         shell: bash
@@ -96,7 +108,7 @@ jobs:
         id: run_operator
         run: |
           export PATH=$PATH:/usr/local/go/bin
-          go run operator.go test-${TEST_ID}-sqlite.dev.4chain.space test-${TEST_ID}-postgres.dev.4chain.space
+          go run operator.go test-${{ github.event.client_payload.run_id }}-sqlite.dev.4chain.space test-${{ github.event.client_payload.run_id }}-postgres.dev.4chain.space
         shell: bash
 
       - name: Install Task
@@ -104,22 +116,38 @@ jobs:
           sudo sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
         shell: bash
 
-      - name: Download and Run External Tests
+      - name: Run External Tests
         run: |
-          git clone https://github.com/4chain-ag/spv-wallet-regression.git
           cd spv-wallet-regression
           task regression-tests
         shell: bash
 
+  fetch-logs:
+    runs-on: ubuntu-latest
+    needs: [preparation, running-tests]
+    if: ${{ failure() || needs.preparation.outputs.app_status == 'unhealthy' }}
+    steps:
       - name: Fetch Logs on Failure
-        if: ${{ failure() || steps.wait_for_apps.outputs.app_status == 'unhealthy' }}
         run: |
-          argocd app logs reg-sl-${TEST_ID} --grpc-web > reg-sl-${TEST_ID}.log
-          argocd app logs reg-pg-${TEST_ID} --grpc-web > reg-pg-${TEST_ID}.log
+          argocd app logs reg-sl-${{ github.event.client_payload.run_id }} --grpc-web > reg-sl-${{ github.event.client_payload.run_id }}.log
+          argocd app logs reg-pg-${{ github.event.client_payload.run_id }} --grpc-web > reg-pg-${{ github.event.client_payload.run_id }}.log
         shell: bash
 
+      - name: Upload Logs
+        uses: actions/upload-artifact@v3
+        with:
+          name: application-logs
+          path: |
+            reg-sl-${{ github.event.client_payload.run_id }}.log
+            reg-pg-${{ github.event.client_payload.run_id }}.log
+
+  cleanup:
+    runs-on: ubuntu-latest
+    needs: [preparation, running-tests, fetch-logs]
+    if: always()
+    steps:
       - name: Remove SQLite Instance
-        run: argocd app delete reg-sl-${TEST_ID} --yes --grpc-web
+        run: argocd app delete reg-sl-${{ github.event.client_payload.run_id }} --yes --grpc-web
 
       - name: Remove Postgres Instance
-        run: argocd app delete reg-pg-${TEST_ID} --yes --grpc-web
+        run: argocd app delete reg-pg-${{ github.event.client_payload.run_id }} --yes --grpc-web
