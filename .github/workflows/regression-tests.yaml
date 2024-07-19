@@ -106,7 +106,7 @@ jobs:
       - name: Install Go from go.mod
         uses: actions/setup-go@v5
         with:
-          go-version-file: go.mod
+          go-version-file: spv-wallet-regression/go.mod
 
       - name: Run Operator
         id: run_operator
