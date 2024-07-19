@@ -14,7 +14,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Cache ArgoCD CLI
+        id: argocd-cache
+        uses: actions/cache@v4
+        with:
+          path: /usr/local/bin/argocd
+          key: argocd-v2.11.5
+
       - name: Install ArgoCD CLI
+        if: steps.argocd-cache.outputs.cache-hit != 'true'
         run: |
           curl -sLO https://github.com/argoproj/argo-cd/releases/download/v2.11.5/argocd-linux-amd64
           chmod +x argocd-linux-amd64
@@ -108,6 +116,7 @@ jobs:
         id: run_operator
         run: |
           export PATH=$PATH:/usr/local/go/bin
+          cd spv-wallet-regression
           go run operator.go test-${{ github.event.client_payload.run_id }}-sqlite.dev.4chain.space test-${{ github.event.client_payload.run_id }}-postgres.dev.4chain.space
         shell: bash
 
@@ -127,6 +136,20 @@ jobs:
     needs: [preparation, running-tests]
     if: ${{ failure() || needs.preparation.outputs.app_status == 'unhealthy' }}
     steps:
+      - name: Cache ArgoCD CLI
+        id: argocd-cache
+        uses: actions/cache@v4
+        with:
+          path: /usr/local/bin/argocd
+          key: argocd-v2.11.5
+
+      - name: Install ArgoCD CLI
+        if: steps.argocd-cache.outputs.cache-hit != 'true'
+        run: |
+          curl -sLO https://github.com/argoproj/argo-cd/releases/download/v2.11.5/argocd-linux-amd64
+          chmod +x argocd-linux-amd64
+          sudo mv argocd-linux-amd64 /usr/local/bin/argocd
+
       - name: Fetch Logs on Failure
         run: |
           argocd app logs reg-sl-${{ github.event.client_payload.run_id }} --grpc-web > reg-sl-${{ github.event.client_payload.run_id }}.log
@@ -134,7 +157,7 @@ jobs:
         shell: bash
 
       - name: Upload Logs
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: application-logs
           path: |
@@ -146,6 +169,20 @@ jobs:
     needs: [preparation, running-tests, fetch-logs]
     if: always()
     steps:
+      - name: Cache ArgoCD CLI
+        id: argocd-cache
+        uses: actions/cache@v4
+        with:
+          path: /usr/local/bin/argocd
+          key: argocd-v2.11.5
+
+      - name: Install ArgoCD CLI
+        if: steps.argocd-cache.outputs.cache-hit != 'true'
+        run: |
+          curl -sLO https://github.com/argoproj/argo-cd/releases/download/v2.11.5/argocd-linux-amd64
+          chmod +x argocd-linux-amd64
+          sudo mv argocd-linux-amd64 /usr/local/bin/argocd
+
       - name: Remove SQLite Instance
         run: argocd app delete reg-sl-${{ github.event.client_payload.run_id }} --yes --grpc-web
 
