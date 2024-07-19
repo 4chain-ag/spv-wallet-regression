@@ -103,19 +103,14 @@ jobs:
           repository: 4chain-ag/spv-wallet-regression
           path: spv-wallet-regression
 
-      - name: Install Go
-        run: |
-          wget https://golang.org/dl/go1.22.5.linux-amd64.tar.gz
-          echo "904b924d435eaea086515bc63235b192ea441bd8c9b198c507e85009e6e4c7f0  go1.22.5.linux-amd64.tar.gz" > go1.22.5.linux-amd64.tar.gz.sha256
-          sha256sum -c go1.22.5.linux-amd64.tar.gz.sha256
-          sudo tar -C /usr/local -xzf go1.22.5.linux-amd64.tar.gz
-          export PATH=$PATH:/usr/local/go/bin
-        shell: bash
+      - name: Install Go from go.mod
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
 
       - name: Run Operator
         id: run_operator
         run: |
-          export PATH=$PATH:/usr/local/go/bin
           cd spv-wallet-regression
           go run operator.go test-${{ github.event.client_payload.run_id }}-sqlite.dev.4chain.space test-${{ github.event.client_payload.run_id }}-postgres.dev.4chain.space
         shell: bash
@@ -150,6 +145,14 @@ jobs:
           chmod +x argocd-linux-amd64
           sudo mv argocd-linux-amd64 /usr/local/bin/argocd
 
+      - name: Log in to ArgoCD
+        env:
+          ARGOCD_SERVER: ${{ secrets.ARGOCD_SERVER }}
+          ARGOCD_USERNAME: ${{ secrets.ARGOCD_USERNAME }}
+          ARGOCD_PASSWORD: ${{ secrets.ARGOCD_PASSWORD }}
+        run: |
+          argocd login $ARGOCD_SERVER --username $ARGOCD_USERNAME --password $ARGOCD_PASSWORD --insecure --grpc-web
+
       - name: Fetch Logs on Failure
         run: |
           argocd app logs reg-sl-${{ github.event.client_payload.run_id }} --grpc-web > reg-sl-${{ github.event.client_payload.run_id }}.log
@@ -182,6 +185,14 @@ jobs:
           curl -sLO https://github.com/argoproj/argo-cd/releases/download/v2.11.5/argocd-linux-amd64
           chmod +x argocd-linux-amd64
           sudo mv argocd-linux-amd64 /usr/local/bin/argocd
+
+      - name: Log in to ArgoCD
+        env:
+          ARGOCD_SERVER: ${{ secrets.ARGOCD_SERVER }}
+          ARGOCD_USERNAME: ${{ secrets.ARGOCD_USERNAME }}
+          ARGOCD_PASSWORD: ${{ secrets.ARGOCD_PASSWORD }}
+        run: |
+          argocd login $ARGOCD_SERVER --username $ARGOCD_USERNAME --password $ARGOCD_PASSWORD --insecure --grpc-web
 
       - name: Remove SQLite Instance
         run: argocd app delete reg-sl-${{ github.event.client_payload.run_id }} --yes --grpc-web

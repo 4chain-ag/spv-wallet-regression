@@ -1,9 +1,34 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
 	"os"
+
+	"github.com/bitcoin-sv/spv-wallet/models"
 )
+
+const (
+	adminXPriv               = "xprv9s21ZrQH143K3CbJXirfrtpLvhT3Vgusdo8coBritQ3rcS7Jy7sxWhatuxG5h2y1Cqj8FKmPp69536gmjYRpfga2MJdsGyBsnB12E19CESK"
+	adminXPub                = "xpub661MyMwAqRbcFgfmdkPgE2m5UjHXu9dj124DbaGLSjaqVESTWfCD4VuNmEbVPkbYLCkykwVZvmA8Pbf8884TQr1FgdG2nPoHR8aB36YdDQh"
+	leaderPaymailAlias       = "leader"
+	domainSuffixSharedConfig = "/v1/shared-config"
+	minimalBalance           = 100
+
+	clientOneURLEnvVar         = "CLIENT_ONE_URL"
+	clientTwoURLEnvVar         = "CLIENT_TWO_URL"
+	clientOneLeaderXPrivEnvVar = "CLIENT_ONE_LEADER_XPRIV"
+	clientTwoLeaderXPrivEnvVar = "CLIENT_TWO_LEADER_XPRIV"
+)
+
+type regressionTestConfig struct {
+	clientOneURL           string
+	clientTwoURL           string
+	clientOnePaymailDomain string
+	clientTwoPaymailDomain string
+}
 
 func main() {
 	if len(os.Args) < 3 {
@@ -11,17 +36,69 @@ func main() {
 		os.Exit(1)
 	}
 
-	sqliteURL := os.Args[1]
-	postgresURL := os.Args[2]
+	config := loadConfig()
+	paymailDomainClientOne, err := getPaymailDomain(adminXPub, config.clientOneURL)
+	if err != nil {
+		fmt.Println("Failed to get shared config for client one:", err)
+		os.Exit(1)
+	}
 
-	// Set environment variables
-	os.Setenv("EXAMPLE_VAR1", sqliteURL)
-	os.Setenv("EXAMPLE_VAR2", postgresURL)
+	paymailDomainClientTwo, err := getPaymailDomain(adminXPub, config.clientTwoURL)
+	if err != nil {
+		fmt.Println("Failed to get shared config for client two:", err)
+		os.Exit(1)
+	}
 
-	// Simulate performing tasks on the instances
-	fmt.Printf("Performing tasks on SQLite instance at %s and Postgres instance at %s...\n", sqliteURL, postgresURL)
+	config.clientOnePaymailDomain = paymailDomainClientOne
+	config.clientTwoPaymailDomain = paymailDomainClientTwo
 
-	// Output the variables for debugging
-	fmt.Printf("EXAMPLE_VAR1: %s\n", os.Getenv("EXAMPLE_VAR1"))
-	fmt.Printf("EXAMPLE_VAR2: %s\n", os.Getenv("EXAMPLE_VAR2"))
+	// create leader accounts
+	// send them some money ->> repository spv-wallet-regression tests should have master instance url ENV set + xpriv env from we can get money
+	// create this account and send money here: https://spv-wallet.test.4chain.space/
+	// check balance
+	// set envs
+	// end
+
+}
+
+func getPaymailDomain(xpub string, instanceURL string) (string, error) {
+	apiURL := instanceURL + domainSuffixSharedConfig
+	req, err := http.NewRequest(http.MethodGet, apiURL, nil)
+	if err != nil {
+		return "", err
+	}
+
+	req.Header.Set(models.AuthHeader, xpub)
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("failed to get shared config: %s", resp.Status)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+
+	var configResponse models.SharedConfig
+	if err := json.Unmarshal(body, &configResponse); err != nil {
+		return "", err
+	}
+
+	if len(configResponse.PaymailDomains) != 1 {
+		return "", fmt.Errorf("expected 1 paymail domain, got %d", len(configResponse.PaymailDomains))
+	}
+	return configResponse.PaymailDomains[0], nil
+}
+
+func loadConfig() *regressionTestConfig {
+	return &regressionTestConfig{
+		clientOneURL: os.Args[1],
+		clientTwoURL: os.Args[2],
+	}
 }
