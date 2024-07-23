@@ -101,6 +101,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: 4chain-ag/spv-wallet-regression
+          ref: feat-894-remote-operator
           path: spv-wallet-regression
 
       - name: Install Go from go.mod
@@ -110,6 +111,9 @@ jobs:
 
       - name: Run Operator
         id: run_operator
+        env:
+          MASTER_INSTANCE_URL: ${{ secrets.MASTER_INSTANCE_URL }}
+          MASTER_INSTANCE_XPRIV: ${{ secrets.MASTER_INSTANCE_XPRIV }}
         run: |
           cd spv-wallet-regression
           go run operator.go test-${{ github.event.client_payload.run_id }}-sqlite.dev.4chain.space test-${{ github.event.client_payload.run_id }}-postgres.dev.4chain.space
