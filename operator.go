@@ -250,8 +250,8 @@ func getBalance(ctx context.Context, fromInstance string, fromXPriv string) (int
 
 func loadConfig() *regressionTestConfig {
 	return &regressionTestConfig{
-		clientOneURL: os.Args[1],
-		clientTwoURL: os.Args[2],
+		clientOneURL: addPrefixIfNeeded(os.Args[1]),
+		clientTwoURL: addPrefixIfNeeded(os.Args[2]),
 	}
 }
 
