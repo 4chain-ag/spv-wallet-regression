@@ -120,10 +120,17 @@ jobs:
           sudo sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
         shell: bash
 
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          repository: bitcoin-sv/spv-wallet-go-client
+          ref: feat-896-regression-tests-v1
+          path: regression_tests
+
       - name: Run External Tests
         run: |
-          cd spv-wallet-regression
-          task regression-tests
+          cd regression_tests
+          task run_regression_tests
         shell: bash
 
   fetch-logs:
