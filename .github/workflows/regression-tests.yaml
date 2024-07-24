@@ -13,6 +13,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          repository: 4chain-ag/spv-wallet-regression
+          ref: feat-894-remote-operator
 
       - name: Cache ArgoCD CLI
         id: argocd-cache
