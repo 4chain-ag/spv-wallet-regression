@@ -20,9 +20,6 @@ spv-wallet-stack:
     enabled: true
     postgresql:
       enabled: false
-    config:
-      db:
-        engine: "sqlite"
 
   spv-wallet-admin:
     enabled: false
