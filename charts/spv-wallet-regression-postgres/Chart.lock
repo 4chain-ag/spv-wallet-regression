@@ -1,6 +1,6 @@
 dependencies:
 - name: spv-wallet-stack
   repository: https://bitcoin-sv.github.io/spv-wallet-helm
-  version: 0.8.4
-digest: sha256:fb2acab206d18ab2ce6668196fe29ba4b487762697018d7fe39e333996ea0850
-generated: "2024-06-28T16:16:19.476189+02:00"
+  version: 0.11.0
+digest: sha256:665bc3526396052d37f63a93059616ed8547c907d18b609131171683fb3711ff
+generated: "2024-07-25T16:01:48.605375+02:00"

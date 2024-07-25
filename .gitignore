@@ -24,3 +24,6 @@ go.work.sum
 # Jetbrains
 .idea/
 *.iml
+
+# ignore charts archives
+*.tgz
