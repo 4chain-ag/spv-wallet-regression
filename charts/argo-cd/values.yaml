@@ -16,7 +16,7 @@ argo-cd:
       # -- Additional ingress annotations
       ## Ref: https://argo-cd.readthedocs.io/en/stable/operator-manual/ingress/#option-1-ssl-passthrough
       annotations:
-        cert-manager.io/cluster-issuer: lets-encrypt
+        cert-manager.io/cluster-issuer: lets-encrypt-prod
         traefik.ingress.kubernetes.io/router.entrypoints: websecure
       # -- Defines which ingress controller will implement the resource
       ingressClassName: "traefik"
