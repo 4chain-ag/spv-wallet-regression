@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: cert-manager
+  name: lets-encrypt-prod
   namespace: argocd
 spec:
   project: default
@@ -17,4 +17,4 @@ spec:
   source:
     repoURL: git@github.com:4chain-ag/spv-wallet-regression.git
     targetRevision: HEAD
-    path: charts/cert-manager
+    path: charts/lets-encrypt-prod
