@@ -15,7 +15,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: 4chain-ag/spv-wallet-regression
-          ref: feat-894-remote-operator
 
       - name: Cache ArgoCD CLI
         id: argocd-cache
@@ -104,7 +103,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: 4chain-ag/spv-wallet-regression
-          ref: feat-894-remote-operator
           path: spv-wallet-regression
 
       - name: Install Go from go.mod
