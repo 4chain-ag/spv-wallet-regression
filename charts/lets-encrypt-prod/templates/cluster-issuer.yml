@@ -4,7 +4,6 @@ metadata:
   name: lets-encrypt-prod
 spec:
   acme:
-    #todo add email address in 4chain.space domain for contact from LetsEncrypt
     server: https://acme-v02.api.letsencrypt.org/directory
     privateKeySecretRef:
       # Secret resource that will be used to store the account's private key.

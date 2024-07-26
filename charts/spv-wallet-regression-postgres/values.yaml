@@ -20,6 +20,8 @@ spv-wallet-stack:
     enabled: true
     postgresql:
       enabled: false
+    ingress:
+      enabled: false
 
   spv-wallet-admin:
     enabled: false

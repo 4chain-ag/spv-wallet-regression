@@ -10,6 +10,8 @@ jobs:
     env:
       TEST_ID: ${{ github.event.client_payload.run_id }}
       IMAGE_TAG: ${{ github.event.client_payload.image_tag }}
+    outputs:
+      app_status: ${{ steps.wait_for_apps.outputs.app_status }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -40,7 +42,7 @@ jobs:
 
       - name: Deploy SQLite Instance
         run: |
-          DOMAIN_NAME="test-${TEST_ID}-sqlite.dev.4chain.space"
+          DOMAIN_NAME="test-${TEST_ID}-sqlite.regression.4chain.dev"
           argocd app create reg-sl-${TEST_ID} \
             --repo https://github.com/${{ github.repository }} \
             --path charts/spv-wallet-regression-sqlite \
@@ -57,7 +59,7 @@ jobs:
 
       - name: Deploy Postgres Instance
         run: |
-          DOMAIN_NAME="test-${TEST_ID}-postgres.dev.4chain.space"
+          DOMAIN_NAME="test-${TEST_ID}-postgres.regression.4chain.dev"
           argocd app create reg-pg-${TEST_ID} \
             --repo https://github.com/${{ github.repository }} \
             --path charts/spv-wallet-regression-postgres \
@@ -86,12 +88,12 @@ jobs:
               echo "::set-output name=app_status::healthy"
               break
             fi
+            echo "Waiting for applications to be healthy and synced..."
+            sleep 120
             if [[ $i -eq 3 ]]; then
               echo "Applications did not become healthy and synced in time"
               echo "::set-output name=app_status::unhealthy"
             fi
-            echo "Waiting for applications to be healthy and synced..."
-            sleep 120
           done
         shell: bash
 
@@ -117,7 +119,7 @@ jobs:
           MASTER_INSTANCE_XPRIV: ${{ secrets.MASTER_INSTANCE_XPRIV }}
         run: |
           cd spv-wallet-regression
-          go run operator.go test-${{ github.event.client_payload.run_id }}-sqlite.dev.4chain.space test-${{ github.event.client_payload.run_id }}-postgres.dev.4chain.space
+          go run operator.go test-${{ github.event.client_payload.run_id }}-sqlite.regression.4chain.dev test-${{ github.event.client_payload.run_id }}-postgres.regression.4chain.dev
         shell: bash
 
       - name: Install Task
