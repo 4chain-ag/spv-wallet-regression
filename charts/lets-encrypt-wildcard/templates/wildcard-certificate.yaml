@@ -6,7 +6,7 @@ metadata:
 spec:
   secretName: wildcard-tls
   issuerRef:
-    name: letsencrypt-cloudflare
+    name: lets-encrypt-wildcard
     kind: ClusterIssuer
   commonName: "*.regression.cleanchain.org"
   dnsNames:
