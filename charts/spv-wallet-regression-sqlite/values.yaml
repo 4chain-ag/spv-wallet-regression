@@ -4,7 +4,7 @@ spv-wallet-stack:
     ingress:
       className: traefik
       additionalAnnotations:
-        cert-manager.io/cluster-issuer: lets-encrypt-stage
+        cert-manager.io/cluster-issuer: lets-encrypt-prod
 
   spv-wallet:
     enabled: true

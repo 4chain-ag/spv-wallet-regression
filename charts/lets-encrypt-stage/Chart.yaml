@@ -1,5 +1,0 @@
-apiVersion: v2
-name: lets-encrypt-stage
-description: Chart for cert-manager resources stage usages.
-type: application
-version: 0.1.0
