@@ -13,3 +13,4 @@ spec:
             apiTokenSecretRef:
               name: cloudflare-api-token-secret
               key: cloudflare-api-token
+              namespace: default
