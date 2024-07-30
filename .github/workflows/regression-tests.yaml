@@ -42,7 +42,7 @@ jobs:
 
       - name: Deploy SQLite Instance
         run: |
-          DOMAIN_NAME="test-${TEST_ID}-sqlite.regression.4chain.dev"
+          DOMAIN_NAME="test-${TEST_ID}-sqlite.regression.cleanchain.org"
           argocd app create reg-sl-${TEST_ID} \
             --repo https://github.com/${{ github.repository }} \
             --path charts/spv-wallet-regression-sqlite \
@@ -59,7 +59,7 @@ jobs:
 
       - name: Deploy Postgres Instance
         run: |
-          DOMAIN_NAME="test-${TEST_ID}-postgres.regression.4chain.dev"
+          DOMAIN_NAME="test-${TEST_ID}-postgres.regression.cleanchain.org"
           argocd app create reg-pg-${TEST_ID} \
             --repo https://github.com/${{ github.repository }} \
             --path charts/spv-wallet-regression-postgres \
@@ -119,7 +119,7 @@ jobs:
           MASTER_INSTANCE_XPRIV: ${{ secrets.MASTER_INSTANCE_XPRIV }}
         run: |
           cd spv-wallet-regression
-          go run operator.go test-${{ github.event.client_payload.run_id }}-sqlite.regression.4chain.dev test-${{ github.event.client_payload.run_id }}-postgres.regression.4chain.dev
+          go run operator.go test-${{ github.event.client_payload.run_id }}-sqlite.regression.cleanchain.org test-${{ github.event.client_payload.run_id }}-postgres.regression.cleanchain.org
         shell: bash
 
       - name: Install Task
