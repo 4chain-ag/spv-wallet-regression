@@ -15,3 +15,5 @@ spec:
       services:
         - kind: TraefikService
           name: noop@internal
+  tls:
+    secretName: wildcard-tls
