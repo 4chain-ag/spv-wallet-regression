@@ -62,6 +62,11 @@ echo -e "${GREEN}[+] Running create-regression-tests.sh...${NC}"
 chmod +x ./create-regression-namespaces.sh
 sudo ./create-regression-namespaces.sh
 
+# Execute set-cert-manager-email-token.sh to set Cloudflare API token
+echo -e "${GREEN}[+] Running set-cert-manager-email-token.sh...${NC}"
+chmod +x ./set-cert-manager-email-token.sh
+sudo ./set-cert-manager-email-token.sh
+
 argocdpswd=$(sudo microk8s kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
 printf "\n${GREEN}Argo CD username: admin\npassword: ${NC}%s\n\n" "$argocdpswd"
 echo -e "${GREEN}[+] Completed!${NC}"
