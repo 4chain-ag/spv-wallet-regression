@@ -9,7 +9,7 @@ spec:
       name: lets-encrypt-wildcard-private-key
     solvers:
       - dns01:
-        cloudflare:
-          apiTokenSecretRef:
-            name: cloudflare-api-token-secret
-            key: cloudflare-api-token
+          cloudflare:
+            apiTokenSecretRef:
+              name: cloudflare-api-token-secret
+              key: cloudflare-api-token
