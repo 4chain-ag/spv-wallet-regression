@@ -1,6 +1,7 @@
 spv-wallet-stack:
   global:
     storageClass: openebs-hostpath
+    adminkeySecret: ""
     ingress:
       className: traefik
       additionalAnnotations:
