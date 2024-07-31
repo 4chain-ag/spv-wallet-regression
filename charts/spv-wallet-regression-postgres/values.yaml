@@ -4,8 +4,6 @@ spv-wallet-stack:
     adminkeySecret: ""
     ingress:
       className: traefik
-      additionalAnnotations:
-#        cert-manager.io/cluster-issuer: lets-encrypt-wildcard
 
   spv-wallet:
     enabled: true
