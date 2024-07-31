@@ -50,6 +50,7 @@ jobs:
             --dest-namespace sqlite-instance-${TEST_ID} \
             --revision HEAD \
             --sync-policy automated \
+            --sync-option CreateNamespace=true \
             --upsert \
             --grpc-web \
             --helm-set global.domainName=${DOMAIN_NAME} \
@@ -67,6 +68,7 @@ jobs:
             --dest-namespace postgres-instance-${TEST_ID} \
             --revision HEAD \
             --sync-policy automated \
+            --sync-option CreateNamespace=true \
             --upsert \
             --grpc-web \
             --helm-set global.domainName=${DOMAIN_NAME} \
