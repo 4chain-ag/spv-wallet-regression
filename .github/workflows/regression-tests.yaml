@@ -79,7 +79,7 @@ jobs:
       - name: Wait for Applications to be Healthy
         id: wait_for_apps
         run: |
-          sleep 270
+          sleep 120
           for i in {1..3}; do
             STATUS_SQLITE=$(argocd app get reg-sl-${TEST_ID} --grpc-web -o json | jq -r '.status.health.status')
             STATUS_POSTGRES=$(argocd app get reg-pg-${TEST_ID} --grpc-web -o json | jq -r '.status.health.status')
