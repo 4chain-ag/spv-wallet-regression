@@ -136,6 +136,12 @@ jobs:
           ref: feat-896-regression-tests-v1
           path: regression_tests
 
+      
+      - name: List contents of regression_tests
+        run: |
+          ls -la regression_tests
+          shell: bash
+
       - name: Run External Tests
         run: |
           cd regression_tests
