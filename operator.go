@@ -128,6 +128,7 @@ func main() {
 
 	setConfigClientsUrls(config, leaderOne.Paymail, leaderTwo.Paymail)
 	setConfigLeaderXPriv(config, leaderOne.XPriv, leaderTwo.XPriv)
+	setEnvVariables(config)
 }
 
 func getPaymailDomain(xpub string, instanceURL string) (string, error) {
