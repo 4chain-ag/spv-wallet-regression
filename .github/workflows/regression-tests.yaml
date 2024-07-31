@@ -122,10 +122,6 @@ jobs:
         run: |
           cd spv-wallet-regression
           go run operator.go test-${{ github.event.client_payload.run_id }}-sqlite.regression.cleanchain.org test-${{ github.event.client_payload.run_id }}-postgres.regression.cleanchain.org
-          echo "CLIENT_ONE_URL=${CLIENT_ONE_URL}" >> $GITHUB_ENV
-          echo "CLIENT_TWO_URL=${CLIENT_TWO_URL}" >> $GITHUB_ENV
-          echo "CLIENT_ONE_LEADER_XPRIV=${CLIENT_ONE_LEADER_XPRIV}" >> $GITHUB_ENV
-          echo "CLIENT_TWO_LEADER_XPRIV=${CLIENT_TWO_LEADER_XPRIV}" >> $GITHUB_ENV
         shell: bash
 
       - name: Install Task
@@ -146,11 +142,6 @@ jobs:
           cd regression_tests
           task run_regression_tests
         shell: bash
-        env:
-          CLIENT_ONE_URL: ${{ env.CLIENT_ONE_URL }}
-          CLIENT_TWO_URL: ${{ env.CLIENT_TWO_URL }}
-          CLIENT_ONE_LEADER_XPRIV: ${{ env.CLIENT_ONE_LEADER_XPRIV }}
-          CLIENT_TWO_LEADER_XPRIV: ${{ env.CLIENT_TWO_LEADER_XPRIV }}
 
   fetch-logs:
     runs-on: ubuntu-latest
