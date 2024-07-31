@@ -9,6 +9,8 @@ spv-wallet-stack:
 
   spv-wallet:
     enabled: true
+    spv-wallet-admin-keygen:
+      enabled: false
     image:
       repository: bsvb/spv-wallet
       pullPolicy: IfNotPresent
