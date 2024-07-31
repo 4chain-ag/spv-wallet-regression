@@ -22,7 +22,7 @@ const (
 	adminXPub                = "xpub661MyMwAqRbcFgfmdkPgE2m5UjHXu9dj124DbaGLSjaqVESTWfCD4VuNmEbVPkbYLCkykwVZvmA8Pbf8884TQr1FgdG2nPoHR8aB36YdDQh"
 	leaderPaymailAlias       = "leader"
 	domainSuffixSharedConfig = "/v1/shared-config"
-	minimalBalance           = 100
+	minimalBalance           = 9
 
 	clientOneURLEnvVar         = "CLIENT_ONE_URL"
 	clientTwoURLEnvVar         = "CLIENT_TWO_URL"
