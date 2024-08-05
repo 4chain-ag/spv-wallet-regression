@@ -151,6 +151,9 @@ jobs:
           cd go-client/regression_tests
           task run_regression_tests
         shell: bash
+        env:
+          CLIENT_ONE_URL: https://${{env.CLIENT_ONE_URL}}
+          CLIENT_TWO_URL: https://${{env.CLIENT_TWO_URL}}
 
   fetch-logs:
     runs-on: ubuntu-latest
