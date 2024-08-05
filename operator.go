@@ -42,6 +42,8 @@ type regressionTestConfig struct {
 	clientTwoURL         string
 	clientOneLeaderXPriv string
 	clientTwoLeaderXPriv string
+	masterURL            string
+	masterXPriv          string
 }
 
 type regressionTestUser struct {
@@ -51,49 +53,32 @@ type regressionTestUser struct {
 }
 
 func main() {
-	if len(os.Args) < 3 {
-		fmt.Println("Usage: operator <sqlite_url> <postgres_url>")
-		os.Exit(1)
-	}
 	ctx := context.Background()
 	config := loadConfig()
-	paymailDomainClientOne, err := getPaymailDomain(adminXPub, config.clientOneURL)
+
+	leaderOne, err := createUser(ctx, config.clientOneURL, config.clientOneLeaderXPriv)
 	if err != nil {
-		fmt.Println("Failed to get shared config for client one:", err)
+		fmt.Printf("Failed to create leader user for %v, error: %v\n", config.clientOneURL, err)
+		os.Exit(1)
+	}
+	leaderTwo, err := createUser(ctx, config.clientTwoURL, config.clientTwoLeaderXPriv)
+	if err != nil {
+		fmt.Printf("Failed to create leader user for %v, error: %v\n", config.clientTwoURL, err)
 		os.Exit(1)
 	}
 
-	paymailDomainClientTwo, err := getPaymailDomain(adminXPub, config.clientTwoURL)
-	if err != nil {
-		fmt.Println("Failed to get shared config for client two:", err)
-		os.Exit(1)
-	}
-
-	leaderOne, err := createUser(ctx, paymailDomainClientOne, config.clientOneURL)
-	if err != nil {
-		fmt.Printf("Failed to create leader user for %v, error: %v\n", paymailDomainClientOne, err)
-		os.Exit(1)
-	}
-	leaderTwo, err := createUser(ctx, paymailDomainClientTwo, config.clientTwoURL)
-	if err != nil {
-		fmt.Printf("Failed to create leader user for %v, error: %v\n", paymailDomainClientTwo, err)
-		os.Exit(1)
-	}
-
-	masterURL, masterXPriv := getEnvs()
-
-	master, err := getBalance(ctx, masterURL, masterXPriv)
+	masterBalance, err := getBalance(ctx, config.masterURL, config.masterXPriv)
 	if err != nil {
 		fmt.Printf("Failed to get balance for master instance, error: %v\n", err)
 		os.Exit(1)
 	}
 
-	if master < 2*minimalBalance {
-		fmt.Printf("Master instance has insufficient funds: %d\n", master)
+	if masterBalance < 2*minimalBalance {
+		fmt.Printf("Master instance has insufficient funds: %d\n", masterBalance)
 		os.Exit(1)
 	}
 
-	_, err = sendFunds(ctx, masterURL, masterXPriv, leaderOne.Paymail, 10)
+	_, err = sendFunds(ctx, config.masterURL, config.masterXPriv, leaderOne.Paymail, 10)
 	if err != nil {
 		fmt.Printf("Failed to send funds from master instance to leader instance %v, error: %v\n", config.clientOneLeaderXPriv, err)
 		os.Exit(1)
@@ -110,13 +95,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	_, err = sendFunds(ctx, masterURL, masterXPriv, leaderTwo.Paymail, 10)
+	_, err = sendFunds(ctx, config.masterURL, config.masterXPriv, leaderTwo.Paymail, 10)
 	if err != nil {
 		fmt.Printf("Failed to send funds from master instance to leader instance %v, error: %v\n", config.clientOneURL, err)
 		os.Exit(1)
 	}
 
-	leaderTwoBalance, err := getBalance(ctx, masterURL, masterXPriv)
+	leaderTwoBalance, err := getBalance(ctx, config.masterURL, config.masterXPriv)
 	if err != nil {
 		fmt.Printf("Failed to get balance for master instance, error: %v\n", err)
 		os.Exit(1)
@@ -125,10 +110,6 @@ func main() {
 		fmt.Printf("Leader instance %v has insufficient funds: %d\n", config.clientOneURL, leaderTwoBalance)
 		os.Exit(1)
 	}
-
-	setConfigClientsUrls(config, leaderOne.Paymail, leaderTwo.Paymail)
-	setConfigLeaderXPriv(config, leaderOne.XPriv, leaderTwo.XPriv)
-	setEnvVariables(config)
 }
 
 func getPaymailDomain(xpub string, instanceURL string) (string, error) {
@@ -166,10 +147,16 @@ func getPaymailDomain(xpub string, instanceURL string) (string, error) {
 	return configResponse.PaymailDomains[0], nil
 }
 
-func createUser(ctx context.Context, paymailDomain string, instanceUrl string) (*regressionTestUser, error) {
-	keys, err := xpriv.Generate()
+func createUser(ctx context.Context, instanceUrl string, userXpriv string) (*regressionTestUser, error) {
+	keys, err := xpriv.FromString(userXpriv)
 	if err != nil {
 		return nil, err
+	}
+
+	paymailDomain, err := getPaymailDomain(adminXPub, instanceUrl)
+	if err != nil {
+		fmt.Printf("Failed to get shared config for %v: %v", paymailDomain, err)
+		os.Exit(1)
 	}
 
 	user := &regressionTestUser{
@@ -250,34 +237,48 @@ func getBalance(ctx context.Context, fromInstance string, fromXPriv string) (int
 }
 
 func loadConfig() *regressionTestConfig {
-	return &regressionTestConfig{
-		clientOneURL: addPrefixIfNeeded(os.Args[1]),
-		clientTwoURL: addPrefixIfNeeded(os.Args[2]),
+	masterURL := os.Getenv(masterInstanceURL)
+	if masterURL == "" {
+		fmt.Println(masterInstanceURL, "environment variable is not set")
+		os.Exit(1)
 	}
-}
 
-func getEnvs() (masterURL string, masterXPriv string) {
-	masterURL = os.Getenv(masterInstanceURL)
-	masterXPriv = os.Getenv(masterInstanceXPriv)
-	return masterURL, masterXPriv
-}
+	masterXPriv := os.Getenv(masterInstanceXPriv)
+	if masterXPriv == "" {
+		fmt.Println(masterInstanceXPriv, "environment variable is not set")
+		os.Exit(1)
+	}
 
-// setEnvVariables sets the environment variables.
-func setEnvVariables(config *regressionTestConfig) {
-	os.Setenv(clientOneURLEnvVar, config.clientOneURL)
-	os.Setenv(clientTwoURLEnvVar, config.clientTwoURL)
-	os.Setenv(clientOneLeaderXPrivEnvVar, config.clientOneLeaderXPriv)
-	os.Setenv(clientTwoLeaderXPrivEnvVar, config.clientOneLeaderXPriv)
-}
+	clientOneURL := os.Getenv(clientOneURLEnvVar)
+	if clientOneURL == "" {
+		fmt.Println(clientOneURLEnvVar, "environment variable is not set")
+		os.Exit(1)
+	}
 
-// setConfigClientsUrls sets the environment domains ulrs variables in the config.
-func setConfigClientsUrls(config *regressionTestConfig, domainOne string, domainTwo string) {
-	config.clientOneURL = domainOne
-	config.clientTwoURL = domainTwo
-}
+	clientTwoURL := os.Getenv(clientTwoURLEnvVar)
+	if clientTwoURL == "" {
+		fmt.Println(clientTwoURLEnvVar, "environment variable is not set")
+		os.Exit(1)
+	}
 
-// setConfigLeaderXPriv sets the environment xprivs variables in the config.
-func setConfigLeaderXPriv(config *regressionTestConfig, xPrivOne string, xPrivTwo string) {
-	config.clientOneLeaderXPriv = xPrivOne
-	config.clientTwoLeaderXPriv = xPrivTwo
+	clientOneLeaderXPriv := os.Getenv(clientOneLeaderXPrivEnvVar)
+	if clientOneLeaderXPriv == "" {
+		fmt.Println(clientOneLeaderXPrivEnvVar, "environment variable is not set")
+		os.Exit(1)
+	}
+
+	clientTwoLeaderXPriv := os.Getenv(clientTwoLeaderXPrivEnvVar)
+	if clientTwoLeaderXPriv == "" {
+		fmt.Println(clientTwoLeaderXPrivEnvVar, "environment variable is not set")
+		os.Exit(1)
+	}
+
+	return &regressionTestConfig{
+		clientOneURL:         addPrefixIfNeeded(clientOneURL),
+		clientOneLeaderXPriv: clientOneLeaderXPriv,
+		clientTwoURL:         addPrefixIfNeeded(clientTwoURL),
+		clientTwoLeaderXPriv: clientTwoLeaderXPriv,
+		masterURL:            addPrefixIfNeeded(masterURL),
+		masterXPriv:          masterXPriv,
+	}
 }
