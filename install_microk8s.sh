@@ -57,11 +57,6 @@ else
     exit 1
 fi
 
-# Execute create-regression-tests.sh to create namespaces required for regression tests
-echo -e "${GREEN}[+] Running create-regression-tests.sh...${NC}"
-chmod +x ./create-regression-namespaces.sh
-sudo ./create-regression-namespaces.sh
-
 # Execute set-cert-manager-email-token.sh to set Cloudflare API token
 echo -e "${GREEN}[+] Running set-cert-manager-email-token.sh...${NC}"
 chmod +x ./set-cert-manager-email-token.sh
