@@ -6,8 +6,8 @@ on:
 
 env:
   TEST_ID: ${{ github.event.client_payload.run_id }}
-  CLIENT_ONE_URL: test-${{github.event.client_payload.run_id}}-sqlite.regression.kow.lt
-  CLIENT_TWO_URL: test-${{github.event.client_payload.run_id}}-postgres.regression.kow.lt
+  CLIENT_ONE_URL: test-${{github.event.client_payload.run_id}}-sqlite.regression.4chain.pl
+  CLIENT_TWO_URL: test-${{github.event.client_payload.run_id}}-postgres.regression.4chain.pl
   # We're setting this keys statically and publicly because
   # they won't operate on a big amounts,
   # and it will be easier to debug if something goes wrong
