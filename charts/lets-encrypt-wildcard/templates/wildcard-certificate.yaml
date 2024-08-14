@@ -8,6 +8,6 @@ spec:
   issuerRef:
     name: lets-encrypt-wildcard
     kind: ClusterIssuer
-  commonName: "*.regression.cleanchain.org"
+  commonName: "*.regression.kow.lt"
   dnsNames:
-  - "*.regression.cleanchain.org"
+  - "*.regression.kow.lt"
