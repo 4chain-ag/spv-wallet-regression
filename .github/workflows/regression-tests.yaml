@@ -6,8 +6,8 @@ on:
 
 env:
   TEST_ID: ${{ github.event.client_payload.run_id }}
-  CLIENT_ONE_URL: test-${{github.event.client_payload.run_id}}-sqlite.regression.cleanchain.org
-  CLIENT_TWO_URL: test-${{github.event.client_payload.run_id}}-postgres.regression.cleanchain.org
+  CLIENT_ONE_URL: test-${{github.event.client_payload.run_id}}-sqlite.regression.4chain.pl
+  CLIENT_TWO_URL: test-${{github.event.client_payload.run_id}}-postgres.regression.4chain.pl
   # We're setting this keys statically and publicly because
   # they won't operate on a big amounts,
   # and it will be easier to debug if something goes wrong
@@ -196,35 +196,35 @@ jobs:
             reg-sl-${{ github.event.client_payload.run_id }}.log
             reg-pg-${{ github.event.client_payload.run_id }}.log
 
-  # cleanup:
-  #   runs-on: ubuntu-latest
-  #   needs: [preparation, running-tests, fetch-logs]
-  #   if: always()
-  #   steps:
-  #     - name: Cache ArgoCD CLI
-  #       id: argocd-cache
-  #       uses: actions/cache@v4
-  #       with:
-  #         path: /usr/local/bin/argocd
-  #         key: argocd-v2.11.5
+  cleanup:
+    runs-on: ubuntu-latest
+    needs: [preparation, running-tests, fetch-logs]
+    if: always()
+    steps:
+      - name: Cache ArgoCD CLI
+        id: argocd-cache
+        uses: actions/cache@v4
+        with:
+          path: /usr/local/bin/argocd
+          key: argocd-v2.11.5
 
-  #     - name: Install ArgoCD CLI
-  #       if: steps.argocd-cache.outputs.cache-hit != 'true'
-  #       run: |
-  #         curl -sLO https://github.com/argoproj/argo-cd/releases/download/v2.11.5/argocd-linux-amd64
-  #         chmod +x argocd-linux-amd64
-  #         sudo mv argocd-linux-amd64 /usr/local/bin/argocd
+      - name: Install ArgoCD CLI
+        if: steps.argocd-cache.outputs.cache-hit != 'true'
+        run: |
+          curl -sLO https://github.com/argoproj/argo-cd/releases/download/v2.11.5/argocd-linux-amd64
+          chmod +x argocd-linux-amd64
+          sudo mv argocd-linux-amd64 /usr/local/bin/argocd
 
-  #     - name: Log in to ArgoCD
-  #       env:
-  #         ARGOCD_SERVER: ${{ secrets.ARGOCD_SERVER }}
-  #         ARGOCD_USERNAME: ${{ secrets.ARGOCD_USERNAME }}
-  #         ARGOCD_PASSWORD: ${{ secrets.ARGOCD_PASSWORD }}
-  #       run: |
-  #         argocd login $ARGOCD_SERVER --username $ARGOCD_USERNAME --password $ARGOCD_PASSWORD --insecure --grpc-web
+      - name: Log in to ArgoCD
+        env:
+          ARGOCD_SERVER: ${{ secrets.ARGOCD_SERVER }}
+          ARGOCD_USERNAME: ${{ secrets.ARGOCD_USERNAME }}
+          ARGOCD_PASSWORD: ${{ secrets.ARGOCD_PASSWORD }}
+        run: |
+          argocd login $ARGOCD_SERVER --username $ARGOCD_USERNAME --password $ARGOCD_PASSWORD --insecure --grpc-web
 
-  #     - name: Remove SQLite Instance
-  #       run: argocd app delete reg-sl-${{ github.event.client_payload.run_id }} --yes --grpc-web
+      - name: Remove SQLite Instance
+        run: argocd app delete reg-sl-${{ github.event.client_payload.run_id }} --yes --grpc-web
 
-  #     - name: Remove Postgres Instance
-  #       run: argocd app delete reg-pg-${{ github.event.client_payload.run_id }} --yes --grpc-web
+      - name: Remove Postgres Instance
+        run: argocd app delete reg-pg-${{ github.event.client_payload.run_id }} --yes --grpc-web
