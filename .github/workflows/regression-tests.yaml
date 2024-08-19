@@ -194,6 +194,15 @@ jobs:
           path: |
             reg-sl-${{ github.event.client_payload.run_id }}.log
             reg-pg-${{ github.event.client_payload.run_id }}.log
+      
+      - name: Determine Test Status
+        id: test_status
+        run: |
+          # Logic to determine test status (e.g., based on test results)
+          if [ "$tests_passed" == "true" ]; then
+            echo "status=success" >> $GITHUB_ENV
+          else
+            echo "status=failure" >> $GITHUB_ENV
             
       - name: Upload Results To Determine Test Result
         uses: actions/upload-artifact@v4
