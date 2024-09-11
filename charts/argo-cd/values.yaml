@@ -80,5 +80,5 @@ argo-cd:
   configs:
     repositories:
       private-repo:
-        url: git@github.com:4chain-ag/spv-wallet-regression.git
+        url: https://github.com/4chain-ag/spv-wallet-regression.git
         sshPrivateKey: |
