@@ -32,12 +32,12 @@ jobs:
         uses: actions/cache@v4
         with:
           path: /usr/local/bin/argocd
-          key: argocd-v2.11.5
+          key: argocd-v2.11.8
 
       - name: Install ArgoCD CLI
         if: steps.argocd-cache.outputs.cache-hit != 'true'
         run: |
-          curl -sLO https://github.com/argoproj/argo-cd/releases/download/v2.11.5/argocd-linux-amd64
+          curl -sLO https://github.com/argoproj/argo-cd/releases/download/v2.11.8/argocd-linux-amd64
           chmod +x argocd-linux-amd64
           sudo mv argocd-linux-amd64 /usr/local/bin/argocd
 
@@ -187,12 +187,12 @@ jobs:
         uses: actions/cache@v4
         with:
           path: /usr/local/bin/argocd
-          key: argocd-v2.11.5
+          key: argocd-v2.11.8
 
       - name: Install ArgoCD CLI
         if: steps.argocd-cache.outputs.cache-hit != 'true'
         run: |
-          curl -sLO https://github.com/argoproj/argo-cd/releases/download/v2.11.5/argocd-linux-amd64
+          curl -sLO https://github.com/argoproj/argo-cd/releases/download/v2.11.8/argocd-linux-amd64
           chmod +x argocd-linux-amd64
           sudo mv argocd-linux-amd64 /usr/local/bin/argocd
 
@@ -228,12 +228,12 @@ jobs:
         uses: actions/cache@v4
         with:
           path: /usr/local/bin/argocd
-          key: argocd-v2.11.5
+          key: argocd-v2.11.8
 
       - name: Install ArgoCD CLI
         if: steps.argocd-cache.outputs.cache-hit != 'true'
         run: |
-          curl -sLO https://github.com/argoproj/argo-cd/releases/download/v2.11.5/argocd-linux-amd64
+          curl -sLO https://github.com/argoproj/argo-cd/releases/download/v2.11.8/argocd-linux-amd64
           chmod +x argocd-linux-amd64
           sudo mv argocd-linux-amd64 /usr/local/bin/argocd
 
