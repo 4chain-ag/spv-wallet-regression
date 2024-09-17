@@ -56,6 +56,12 @@ func main() {
 	ctx := context.Background()
 	config := loadConfig()
 
+	//TODO: remove this is for testing purposes
+	_, err := sendFunds(ctx, config.masterURL, config.masterXPriv, "bob@jakubmkowalski.test.4chain.space", 10)
+	if err != nil {
+		fmt.Printf("Failed to send funds from master instance to leader instance bob, error: %v\n", err)
+	}
+
 	leaderOne, err := createUser(ctx, config.clientOneURL, config.clientOneLeaderXPriv)
 	if err != nil {
 		fmt.Printf("Failed to create leader user for %v, error: %v\n", config.clientOneURL, err)
