@@ -142,7 +142,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          repository: bitcoin-sv/spv-wallet-go-client@v1.0.0-beta.13
+          repository: bitcoin-sv/spv-wallet-go-client
           path: go-client
 
       - name: Run External Tests
