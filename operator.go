@@ -80,7 +80,7 @@ func main() {
 
 	_, err = sendFunds(ctx, config.masterURL, config.masterXPriv, leaderOne.Paymail, 10)
 	if err != nil {
-		fmt.Printf("Failed to send funds from master instance to leader instance %v, error: %v\n", config.clientOneLeaderXPriv, err)
+		fmt.Printf("Failed to send funds from master instance to leader instance %v, error: %v\n", leaderOne.Paymail, err)
 		os.Exit(1)
 	}
 
@@ -97,7 +97,7 @@ func main() {
 
 	_, err = sendFunds(ctx, config.masterURL, config.masterXPriv, leaderTwo.Paymail, 10)
 	if err != nil {
-		fmt.Printf("Failed to send funds from master instance to leader instance %v, error: %v\n", config.clientOneURL, err)
+		fmt.Printf("Failed to send funds from master instance to leader instance %v, error: %v\n", leaderTwo.Paymail, err)
 		os.Exit(1)
 	}
 
