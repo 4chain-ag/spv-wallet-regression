@@ -24,11 +24,7 @@ spv-wallet-stack:
       enabled: false
 
   block-headers-service:
-    enabled: true
-    postgresql:
-      enabled: false
-    ingress:
-      enabled: false
+    enabled: false
 
   spv-wallet-admin:
     enabled: false
