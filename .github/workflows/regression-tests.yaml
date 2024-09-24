@@ -151,7 +151,7 @@ jobs:
           repository: bitcoin-sv/spv-wallet-go-client
           path: go-client
 
-      - name: Run External Tests
+      - name: Run go-client Tests
         run: |
           cd go-client/regression_tests
           task run_regression_tests
@@ -176,7 +176,7 @@ jobs:
           npm install
         shell: bash
 
-      - name: Run External Tests
+      - name: Run js-client Tests
         run: |
           cd js-client/src/regression_tests
           task run_regression_tests
