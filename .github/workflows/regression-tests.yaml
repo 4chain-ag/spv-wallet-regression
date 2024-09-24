@@ -167,7 +167,7 @@ jobs:
           path: js-client
 
       - name: Set up Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v4
         with:
           node-version: '22.1.0'
       - name: Install Dependencies
