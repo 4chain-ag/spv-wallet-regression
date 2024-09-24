@@ -166,6 +166,16 @@ jobs:
           repository: bitcoin-sv/spv-wallet-js-client
           path: js-client
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '22.1.0'
+      - name: Install Dependencies
+        run: |
+          cd js-client
+          npm install
+        shell: bash
+
       - name: Run External Tests
         run: |
           cd js-client/src/regression_tests
