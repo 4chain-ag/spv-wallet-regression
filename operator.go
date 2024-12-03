@@ -155,8 +155,7 @@ func createUser(ctx context.Context, instanceUrl string, userXpriv string) (*reg
 
 	paymailDomain, err := getPaymailDomain(adminXPub, instanceUrl)
 	if err != nil {
-		fmt.Printf("Failed to get shared config for %v: %v", paymailDomain, err)
-		os.Exit(1)
+		return nil, fmt.Errorf("failed to get shared config for %v: %w", paymailDomain, err)
 	}
 
 	user := &regressionTestUser{
