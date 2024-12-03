@@ -1,0 +1,28 @@
+name: 'Test regression test flow changes'
+
+on:
+  workflow_dispatch:
+  pull_request_target:
+    types: [labeled]
+
+env:
+  TEST_ID: t${{ github.run_id }}-${{ github.run_attempt }}
+
+jobs:
+  test:
+    if: >
+      (github.event_name == 'workflow_dispatch') ||
+      (github.event_name == 'pull_request_target' && github.event.label.name == 'regression-tests')
+    uses: ./.github/workflows/run-regression-tests.yaml
+    with:
+      image_tag: 'latest'
+      run_id: ${{ env.TEST_ID }}
+      keep_instances: 'failure'
+    secrets:
+      MASTER_INSTANCE_URL: ${{ secrets.MASTER_INSTANCE_URL }}
+      MASTER_INSTANCE_XPRIV: ${{ secrets.MASTER_INSTANCE_XPRIV }}
+      BLOCK_HEADERS_SERVICE_URL: ${{ secrets.BLOCK_HEADERS_SERVICE_URL }}
+      BLOCK_HEADERS_SERVICE_AUTH_TOKEN: ${{ secrets.BLOCK_HEADERS_SERVICE_AUTH_TOKEN }}
+      ARGOCD_SERVER: ${{ secrets.ARGOCD_SERVER }}
+      ARGOCD_USERNAME: ${{ secrets.ARGOCD_USERNAME }}
+      ARGOCD_PASSWORD: ${{ secrets.ARGOCD_PASSWORD }}
