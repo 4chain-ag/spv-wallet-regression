@@ -1,4 +1,4 @@
-name: 'Test regression test flow changes'
+name: 'Test changes in this repository'
 
 on:
   workflow_dispatch:
