@@ -251,7 +251,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22.1.0'
+
       - name: Install Dependencies
+        if: inputs.run_js_client_tests
         run: |
           cd js-client
           npm install
