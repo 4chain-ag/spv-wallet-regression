@@ -216,7 +216,6 @@ jobs:
           MASTER_INSTANCE_XPRIV: ${{ secrets.MASTER_INSTANCE_XPRIV }}
 
       - name: Install Task
-        if: inputs.run_go_client_tests
         run: |
           sudo sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
         shell: bash
