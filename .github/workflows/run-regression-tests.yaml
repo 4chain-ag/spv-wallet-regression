@@ -24,6 +24,26 @@ on:
         default: 'never'
         required: true
         type: string
+      run_go_client_tests:
+        description: 'Whether to run go-client tests'
+        default: true
+        required: false
+        type: boolean
+      go_client_ref:
+        description: 'Git ref of the go-client repository to be used during regression tests, defaults to the default branch aka main'
+        default: ''
+        required: false
+        type: string
+      run_js_client_tests:
+        description: 'Whether to run js-client tests'
+        default: true
+        required: false
+        type: boolean
+      js_client_ref:
+        description: 'Git ref of the js-client repository to be used during regression tests, defaults to the default branch aka main'
+        default: ''
+        required: false
+        type: string
     secrets:
       MASTER_INSTANCE_URL:
         description: 'URL of the spv-wallet that is holding funds used for running the tests'
@@ -196,17 +216,21 @@ jobs:
           MASTER_INSTANCE_XPRIV: ${{ secrets.MASTER_INSTANCE_XPRIV }}
 
       - name: Install Task
+        if: inputs.run_go_client_tests
         run: |
           sudo sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
         shell: bash
 
       - name: Checkout code
+        if: inputs.run_go_client_tests
         uses: actions/checkout@v4
         with:
           repository: bitcoin-sv/spv-wallet-go-client
+          ref: ${{ inputs.go_client_ref }}
           path: go-client
 
       - name: Run go-client Tests
+        if: inputs.run_go_client_tests
         run: |
           cd go-client/regression_tests
           task run_regression_tests
@@ -216,12 +240,14 @@ jobs:
           CLIENT_TWO_URL: https://${{env.CLIENT_TWO_URL}}
 
       - name: Checkout code
+        if: inputs.run_js_client_tests
         uses: actions/checkout@v4
         with:
           repository: bitcoin-sv/spv-wallet-js-client
           path: js-client
 
       - name: Set up Node.js
+        if: inputs.run_js_client_tests
         uses: actions/setup-node@v4
         with:
           node-version: '22.1.0'
@@ -232,6 +258,7 @@ jobs:
         shell: bash
 
       - name: Run js-client Tests
+        if: inputs.run_js_client_tests
         run: |
           cd js-client/src/regression_tests
           task run_regression_tests
