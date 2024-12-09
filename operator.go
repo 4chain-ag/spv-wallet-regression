@@ -164,7 +164,10 @@ func createUser(ctx context.Context, instanceUrl string, userXpriv string) (*reg
 		Paymail: preparePaymail(leaderPaymailAlias, paymailDomain),
 	}
 
-	adminClient := walletclient.NewWithAdminKey(addPrefixIfNeeded(instanceUrl), adminXPriv)
+	adminClient, err := walletclient.NewWithAdminKey(addPrefixIfNeeded(instanceUrl), adminXPriv)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create admin client: %w", err)
+	}
 
 	if err := adminClient.AdminNewXpub(ctx, user.XPub, map[string]any{"some_metadata": "remove"}); err != nil {
 		return nil, err
@@ -202,7 +205,10 @@ func addPrefixIfNeeded(url string) string {
 
 // sendFunds sends funds from one paymail to another.
 func sendFunds(ctx context.Context, fromInstance string, fromXPriv string, toPamail string, howMuch int) (*models.Transaction, error) {
-	client := walletclient.NewWithXPriv(fromInstance, fromXPriv)
+	client, err := walletclient.NewWithXPriv(fromInstance, fromXPriv)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create client with xpriv: %w", err)
+	}
 
 	balance, err := getBalance(ctx, fromInstance, fromXPriv)
 	if err != nil {
@@ -226,7 +232,10 @@ func sendFunds(ctx context.Context, fromInstance string, fromXPriv string, toPam
 }
 
 func getBalance(ctx context.Context, fromInstance string, fromXPriv string) (int, error) {
-	client := walletclient.NewWithXPriv(addPrefixIfNeeded(fromInstance), fromXPriv)
+	client, err := walletclient.NewWithXPriv(addPrefixIfNeeded(fromInstance), fromXPriv)
+	if err != nil {
+		return -1, fmt.Errorf("failed to create client with xpriv: %w", err)
+	}
 
 	xpubInfo, err := client.GetXPub(ctx)
 	if err != nil {
