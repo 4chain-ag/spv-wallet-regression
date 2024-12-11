@@ -6,7 +6,7 @@ on:
       image_tag:
         description: 'SPV Wallet docker image tag to deployed during regression tests'
         default: 'latest'
-        required: true
+        required: false
         type: string
       run_id:
         description: 'Run ID that will distinguish instances of the application between different runs'
