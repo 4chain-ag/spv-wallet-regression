@@ -11,7 +11,7 @@ spv-wallet-stack:
       enabled: false
     image:
       repository: bsvb/spv-wallet
-      pullPolicy: IfNotPresent
+      pullPolicy: Always
       tag: ''
     config:
       auth:
