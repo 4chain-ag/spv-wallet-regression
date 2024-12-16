@@ -4,7 +4,7 @@ go 1.22.5
 
 require (
 	github.com/bitcoin-sv/spv-wallet-go-client v1.0.0-beta.16
-	github.com/bitcoin-sv/spv-wallet/models v1.0.0-beta.32
+	github.com/bitcoin-sv/spv-wallet/models v1.0.0-beta.37
 )
 
 require (
