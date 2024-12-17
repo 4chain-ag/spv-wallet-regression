@@ -93,6 +93,8 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          repository: ${{ env.REG_TESTS_GH_REPO }}
 
       - name: Install Go from go.mod
         uses: actions/setup-go@v5
@@ -211,7 +213,7 @@ jobs:
 
   running-tests:
     runs-on: ubuntu-latest
-    needs: preparation
+    needs: [preparation, check-balance]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -290,7 +292,7 @@ jobs:
 
   determine-status:
     runs-on: ubuntu-latest
-    needs: [preparation, running-tests]
+    needs: [preparation, running-tests, check-balance]
     if: always()
     steps:
       - name: Determine Status
@@ -313,7 +315,7 @@ jobs:
 
   fetch-logs:
     runs-on: ubuntu-latest
-    needs: determine-status
+    needs: [determine-status, check-balance]
     if: always()
     steps:
       - name: Cache ArgoCD CLI
@@ -354,7 +356,7 @@ jobs:
 
   cleanup:
     runs-on: ubuntu-latest
-    needs: [preparation, running-tests, fetch-logs]
+    needs: [preparation, check-balance, running-tests, fetch-logs]
     # always (S) [F] => F & (TF) = F
     # always (F) [F] => F & (TF) = F
     # always (C) [F] => F & (TF) = F
