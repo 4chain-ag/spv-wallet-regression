@@ -33,3 +33,16 @@ func GetEnv(key string) (string, error) {
 	}
 	return value, nil
 }
+
+// HandleErrorAndExit logs a formatted error message and exits the program.
+func HandleErrorAndExit(format string, args ...interface{}) {
+	message := fmt.Sprintf(format, args...)
+	fmt.Fprintf(StdErr, "Error: %s\n", message)
+	os.Exit(1)
+}
+
+// PrintOutput prints a formatted message to StdOut
+func PrintOutput(format string, args ...interface{}) {
+	message := fmt.Sprintf(format, args...)
+	fmt.Fprintln(StdOut, message)
+}
