@@ -95,6 +95,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: ${{ env.REG_TESTS_GH_REPO }}
+          path: spv-wallet-regression
 
       - name: Install Go from go.mod
         uses: actions/setup-go@v5
