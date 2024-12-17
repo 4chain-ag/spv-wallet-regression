@@ -108,6 +108,7 @@ jobs:
           MASTER_INSTANCE_XPRIV: ${{ secrets.MASTER_INSTANCE_XPRIV }}
 
   preparation:
+    needs: check-balance
     runs-on: ubuntu-latest
     env:
       IMAGE_TAG: ${{ inputs.image_tag }}
