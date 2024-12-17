@@ -27,3 +27,6 @@ go.work.sum
 
 # ignore charts archives
 *.tgz
+
+# ignore .env which stores environment variables for development/testing
+.env

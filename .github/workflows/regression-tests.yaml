@@ -17,6 +17,25 @@ env:
   BLOCK_HEADERS_SERVICE_AUTH_TOKEN: ${{ secrets.BLOCK_HEADERS_SERVICE_AUTH_TOKEN }}
 
 jobs:
+  check-balance:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install Go from go.mod
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: spv-wallet-regression/go.mod
+
+      - name: Check Master Balance
+        run: |
+          cd spv-wallet-regression
+          go run ./cmd/check-balance/check_balance.go
+        env:
+          MASTER_INSTANCE_URL: ${{ secrets.MASTER_INSTANCE_URL }}
+          MASTER_INSTANCE_XPRIV: ${{ secrets.MASTER_INSTANCE_XPRIV }}
+
   preparation:
     runs-on: ubuntu-latest
     env:
@@ -138,7 +157,7 @@ jobs:
 
         run: |
           cd spv-wallet-regression
-          go run operator.go
+          go run ./cmd/operator/main.go
         shell: bash
         env:
           MASTER_INSTANCE_URL: ${{ secrets.MASTER_INSTANCE_URL }}
