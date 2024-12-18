@@ -248,7 +248,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: 4chain-ag/spv-wallet-go-client-v2
-          ref: refactor/SPV-1278-add-regression-tests-implementation
+          ref: ${{ inputs.go_client_ref }}
           path: go-client
 
       - name: Run go-client Tests
