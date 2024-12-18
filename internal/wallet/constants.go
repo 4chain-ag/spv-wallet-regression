@@ -1,0 +1,18 @@
+package wallet
+
+const (
+	sharedConfigURI = "/v1/shared-config"
+)
+
+const (
+	MinimalBalance = 10
+)
+
+const (
+	MASTER_INSTANCE_URL     = "MASTER_INSTANCE_URL"
+	MASTER_INSTANCE_XPRIV   = "MASTER_INSTANCE_XPRIV"
+	CLIENT_ONE_URL          = "CLIENT_ONE_URL"
+	CLIENT_TWO_URL          = "CLIENT_TWO_URL"
+	CLIENT_ONE_LEADER_XPRIV = "CLIENT_ONE_LEADER_XPRIV"
+	CLIENT_TWO_LEADER_XPRIV = "CLIENT_TWO_LEADER_XPRIV"
+)

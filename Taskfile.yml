@@ -1,10 +1,23 @@
 version: '3'
 
 tasks:
+  check-balance:
+    cmds:
+      - go run ./cmd/check-balance/check_balance.go
+    env:
+      EXAMPLE_VAR1: "{{.EXAMPLE_VAR1}}"
+      EXAMPLE_VAR2: "{{.EXAMPLE_VAR2}}"
+    dir: .
+
   regression-tests:
     cmds:
-      - go test -v
+      - go test -v ./...
     dir: .
     env:
       EXAMPLE_VAR1: "{{.EXAMPLE_VAR1}}"
       EXAMPLE_VAR2: "{{.EXAMPLE_VAR2}}"
+  
+  regression-tests-with-balance-check:
+    cmds:
+      - task: check-balance
+      - task: regression-tests
