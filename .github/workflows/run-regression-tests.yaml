@@ -253,12 +253,6 @@ jobs:
           sudo sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
         shell: bash
 
-      - name: Print repository to use
-        run: |
-          echo "repo from event: ${{ github.event.head.repo.full_name }}
-          echo "go-client-repo: ${{ inputs.go_client_repository }}"
-          echo "js-client-repo: ${{ inputs.js_client_repository }}"
-
       - name: Checkout go-client code
         if: inputs.run_go_client_tests
         uses: actions/checkout@v4
