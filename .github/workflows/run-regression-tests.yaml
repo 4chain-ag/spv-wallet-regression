@@ -29,6 +29,11 @@ on:
         default: true
         required: false
         type: boolean
+      go_client_repository:
+        description: 'Git repository of the go-client to be used during regression tests'
+        default: 'bitcoin-sv/spv-wallet-go-client'
+        required: false
+        type: string
       go_client_ref:
         description: 'Git ref of the go-client repository to be used during regression tests, defaults to the default branch aka main'
         default: ''
@@ -39,6 +44,11 @@ on:
         default: true
         required: false
         type: boolean
+      js_client_repository:
+        description: 'Git repository of the js-client to be used during regression tests'
+        default: 'bitcoin-sv/spv-wallet-js-client'
+        required: false
+        type: string
       js_client_ref:
         description: 'Git ref of the js-client repository to be used during regression tests, defaults to the default branch aka main'
         default: ''
@@ -247,7 +257,7 @@ jobs:
         if: inputs.run_go_client_tests
         uses: actions/checkout@v4
         with:
-          repository: bitcoin-sv/spv-wallet-go-client
+          repository: ${{ inputs.go_client_repository }}
           ref: ${{ inputs.go_client_ref }}
           path: go-client
 
@@ -265,7 +275,7 @@ jobs:
         if: inputs.run_js_client_tests
         uses: actions/checkout@v4
         with:
-          repository: bitcoin-sv/spv-wallet-js-client
+          repository: ${{ inputs.js_client_repository }}
           path: js-client
 
       - name: Set up Node.js
