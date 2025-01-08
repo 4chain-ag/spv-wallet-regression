@@ -226,7 +226,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [preparation, check-balance]
     steps:
-      - name: Checkout code
+      - name: Checkout code from the regression tests repository
         uses: actions/checkout@v4
         with:
           repository: ${{ env.REG_TESTS_GH_REPO }}
@@ -253,7 +253,13 @@ jobs:
           sudo sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
         shell: bash
 
-      - name: Checkout code
+      - name: Print repository to use
+        run: |
+          echo "repo from event: ${{ github.event.head.repo.full_name }}
+          echo "go-client-repo: ${{ inputs.go_client_repository }}"
+          echo "js-client-repo: ${{ inputs.js_client_repository }}"
+
+      - name: Checkout go-client code
         if: inputs.run_go_client_tests
         uses: actions/checkout@v4
         with:
@@ -271,7 +277,7 @@ jobs:
           CLIENT_ONE_URL: https://${{env.CLIENT_ONE_URL}}
           CLIENT_TWO_URL: https://${{env.CLIENT_TWO_URL}}
 
-      - name: Checkout code
+      - name: Checkout js-client code
         if: inputs.run_js_client_tests
         uses: actions/checkout@v4
         with:
