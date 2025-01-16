@@ -28,7 +28,7 @@ func LoadConfig() (*Config, error) {
 		CLIENT_TWO_LEADER_XPRIV: "",
 	}
 
-	for env, _ := range requiredEnvVars {
+	for env := range requiredEnvVars {
 		value, err := utils.GetEnv(env)
 		if err != nil {
 			return nil, fmt.Errorf("failed to retrieve environment variable %s: %w", env, err)
