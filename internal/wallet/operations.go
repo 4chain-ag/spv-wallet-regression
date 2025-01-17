@@ -10,6 +10,7 @@ import (
 
 	walletclient "github.com/bitcoin-sv/spv-wallet-go-client"
 	"github.com/bitcoin-sv/spv-wallet-go-client/commands"
+	"github.com/bitcoin-sv/spv-wallet-go-client/config"
 	walletclientcfg "github.com/bitcoin-sv/spv-wallet-go-client/config"
 	"github.com/bitcoin-sv/spv-wallet-go-client/walletkeys"
 	"github.com/bitcoin-sv/spv-wallet/models"
@@ -35,14 +36,14 @@ func CreateUser(ctx context.Context, instanceURL, userXPriv, adminXPriv, adminXP
 		return nil, fmt.Errorf("failed to get paymail domain for %v: %w", paymailDomain, err)
 	}
 
-	xPub, err := xPriv.Neuter()
+	xPub, err := walletkeys.XPubFromXPriv(userXPriv)
 	if err != nil {
-		return nil, fmt.Errorf("failed to neuter XPriv: %w", err)
+		return nil, fmt.Errorf("failed to derive XPub: %w", err)
 	}
 
 	user := &User{
 		XPriv:   xPriv.String(),
-		XPub:    xPub.String(),
+		XPub:    xPub,
 		Paymail: fmt.Sprintf("%s@%s", alias, paymailDomain),
 	}
 
@@ -92,7 +93,8 @@ func GetBalance(ctx context.Context, instanceURL, fromXPriv string) (int, error)
 
 // SendFunds transfers funds to a specified paymail.
 func SendFunds(ctx context.Context, fromURL, fromXPriv, toPaymail string, amount int) (*response.Transaction, error) {
-	client, err := walletclient.NewUserAPIWithXPriv(walletclientcfg.Config{Addr: fromURL}, fromXPriv)
+	cfg := config.New(config.WithAddr(fromURL))
+	client, err := walletclient.NewUserAPIWithXPriv(cfg, fromXPriv)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create client: %w", err)
 	}
