@@ -11,7 +11,6 @@ import (
 	walletclient "github.com/bitcoin-sv/spv-wallet-go-client"
 	"github.com/bitcoin-sv/spv-wallet-go-client/commands"
 	"github.com/bitcoin-sv/spv-wallet-go-client/config"
-	walletclientcfg "github.com/bitcoin-sv/spv-wallet-go-client/config"
 	"github.com/bitcoin-sv/spv-wallet-go-client/walletkeys"
 	"github.com/bitcoin-sv/spv-wallet/models"
 	"github.com/bitcoin-sv/spv-wallet/models/response"
@@ -47,7 +46,8 @@ func CreateUser(ctx context.Context, instanceURL, userXPriv, adminXPriv, adminXP
 		Paymail: fmt.Sprintf("%s@%s", alias, paymailDomain),
 	}
 
-	adminClient, err := walletclient.NewAdminAPIWithXPriv(walletclientcfg.Config{Addr: instanceURL}, adminXPriv)
+	cfg := config.New(config.WithAddr(instanceURL))
+	adminClient, err := walletclient.NewAdminAPIWithXPriv(cfg, adminXPriv)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create admin client: %w", err)
 	}
@@ -78,7 +78,8 @@ func CreateUser(ctx context.Context, instanceURL, userXPriv, adminXPriv, adminXP
 
 // GetBalance retrieves the current balance.
 func GetBalance(ctx context.Context, instanceURL, fromXPriv string) (int, error) {
-	client, err := walletclient.NewUserAPIWithXPriv(walletclientcfg.Config{Addr: instanceURL}, fromXPriv)
+	cfg := config.New(config.WithAddr(instanceURL))
+	client, err := walletclient.NewUserAPIWithXPriv(cfg, fromXPriv)
 	if err != nil {
 		return -1, fmt.Errorf("failed to create client: %w", err)
 	}
