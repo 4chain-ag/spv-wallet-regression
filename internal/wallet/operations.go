@@ -9,8 +9,11 @@ import (
 	"net/url"
 
 	walletclient "github.com/bitcoin-sv/spv-wallet-go-client"
-	"github.com/bitcoin-sv/spv-wallet-go-client/xpriv"
+	"github.com/bitcoin-sv/spv-wallet-go-client/commands"
+	"github.com/bitcoin-sv/spv-wallet-go-client/config"
+	"github.com/bitcoin-sv/spv-wallet-go-client/walletkeys"
 	"github.com/bitcoin-sv/spv-wallet/models"
+	"github.com/bitcoin-sv/spv-wallet/models/response"
 )
 
 // User represents a wallet user with key and paymail info.
@@ -22,7 +25,7 @@ type User struct {
 
 // CreateUser creates a wallet user and sets up a paymail.
 func CreateUser(ctx context.Context, instanceURL, userXPriv, adminXPriv, adminXPub, alias string) (*User, error) {
-	keys, err := xpriv.FromString(userXPriv)
+	xPriv, err := walletkeys.XPrivFromString(userXPriv)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse XPriv: %w", err)
 	}
@@ -32,22 +35,41 @@ func CreateUser(ctx context.Context, instanceURL, userXPriv, adminXPriv, adminXP
 		return nil, fmt.Errorf("failed to get paymail domain for %v: %w", paymailDomain, err)
 	}
 
+	xPub, err := walletkeys.XPubFromXPriv(userXPriv)
+	if err != nil {
+		return nil, fmt.Errorf("failed to derive XPub: %w", err)
+	}
+
 	user := &User{
-		XPriv:   keys.XPriv(),
-		XPub:    keys.XPub().String(),
+		XPriv:   xPriv.String(),
+		XPub:    xPub,
 		Paymail: fmt.Sprintf("%s@%s", alias, paymailDomain),
 	}
 
-	adminClient, err := walletclient.NewWithAdminKey(instanceURL, adminXPriv)
+	cfg := config.New(config.WithAddr(instanceURL))
+	adminClient, err := walletclient.NewAdminAPIWithXPriv(cfg, adminXPriv)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create admin client: %w", err)
 	}
 
-	if err := adminClient.AdminNewXpub(ctx, user.XPub, map[string]any{"some_metadata": "remove"}); err != nil {
+	xpubCmd := &commands.CreateUserXpub{
+		XPub:     user.XPub,
+		Metadata: map[string]any{"some_metadata": "remove"},
+	}
+
+	if _, err := adminClient.CreateXPub(ctx, xpubCmd); err != nil {
 		return nil, fmt.Errorf("failed to create XPub: %w", err)
 	}
 
-	if _, err := adminClient.AdminCreatePaymail(ctx, user.XPub, user.Paymail, "Regression Test", ""); err != nil {
+	paymailCmd := &commands.CreatePaymail{
+		Address:    user.Paymail,
+		Key:        user.XPub,
+		PublicName: "Regression Test",
+		Avatar:     "",
+		Metadata:   map[string]any{"some_metadata": "remove"},
+	}
+
+	if _, err := adminClient.CreatePaymail(ctx, paymailCmd); err != nil {
 		return nil, fmt.Errorf("failed to create paymail: %w", err)
 	}
 
@@ -56,12 +78,13 @@ func CreateUser(ctx context.Context, instanceURL, userXPriv, adminXPriv, adminXP
 
 // GetBalance retrieves the current balance.
 func GetBalance(ctx context.Context, instanceURL, fromXPriv string) (int, error) {
-	client, err := walletclient.NewWithXPriv(instanceURL, fromXPriv)
+	cfg := config.New(config.WithAddr(instanceURL))
+	client, err := walletclient.NewUserAPIWithXPriv(cfg, fromXPriv)
 	if err != nil {
 		return -1, fmt.Errorf("failed to create client: %w", err)
 	}
 
-	xPubInfo, err := client.GetXPub(ctx)
+	xPubInfo, err := client.XPub(ctx)
 	if err != nil {
 		return -1, fmt.Errorf("failed to retrieve XPub: %w", err)
 	}
@@ -70,8 +93,9 @@ func GetBalance(ctx context.Context, instanceURL, fromXPriv string) (int, error)
 }
 
 // SendFunds transfers funds to a specified paymail.
-func SendFunds(ctx context.Context, fromURL, fromXPriv, toPaymail string, amount int) (*models.Transaction, error) {
-	client, err := walletclient.NewWithXPriv(fromURL, fromXPriv)
+func SendFunds(ctx context.Context, fromURL, fromXPriv, toPaymail string, amount int) (*response.Transaction, error) {
+	cfg := config.New(config.WithAddr(fromURL))
+	client, err := walletclient.NewUserAPIWithXPriv(cfg, fromXPriv)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create client: %w", err)
 	}
@@ -85,11 +109,20 @@ func SendFunds(ctx context.Context, fromURL, fromXPriv, toPaymail string, amount
 		return nil, fmt.Errorf("insufficient funds: %d", balance)
 	}
 
-	recipient := walletclient.Recipients{To: toPaymail, Satoshis: uint64(amount)}
 	metadata := map[string]any{
 		"description": "regression-test",
 	}
-	tx, err := client.SendToRecipients(ctx, []*walletclient.Recipients{&recipient}, metadata)
+	recipients := &commands.SendToRecipients{
+		Recipients: []*commands.Recipients{
+			{
+				To:       toPaymail,
+				Satoshis: uint64(amount),
+			},
+		},
+		Metadata: metadata,
+	}
+
+	tx, err := client.SendToRecipients(ctx, recipients)
 	if err != nil {
 		return nil, fmt.Errorf("failed to send funds: %w", err)
 	}
