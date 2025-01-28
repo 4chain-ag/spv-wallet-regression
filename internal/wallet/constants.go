@@ -1,7 +1,7 @@
 package wallet
 
 const (
-	sharedConfigURI = "/v1/shared-config"
+	sharedConfigURI = "/api/v1/configs/shared"
 )
 
 const (
