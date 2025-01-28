@@ -150,7 +150,7 @@ func getPaymailDomain(instanceURL, adminXPub string) (string, error) {
 		return "", fmt.Errorf("failed to get shared config: %s", resp.Status)
 	}
 
-	var config models.SharedConfig
+	var config response.SharedConfig
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return "", fmt.Errorf("failed to read response body: %w", err)
