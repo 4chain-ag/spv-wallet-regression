@@ -1,306 +1,50 @@
-name: Regression tests for spv-wallet
+name: "Regression Tests"
+run-name: "Regression Tests for ${{ github.head_ref || github.ref }} | ID: ${{ github.run_id }}-${{ github.run_attempt }}"
 
 on:
-  repository_dispatch:
-    types: [regression_tests]
-
-env:
-  TEST_ID: ${{ github.event.client_payload.run_id }}
-  CLIENT_ONE_URL: ${{github.event.client_payload.run_id}}-sl.regression.4chain.pl
-  CLIENT_TWO_URL: ${{github.event.client_payload.run_id}}-pg.regression.4chain.pl
-  # We're setting this keys statically and publicly because
-  # they won't operate on a big amounts,
-  # and it will be easier to debug if something goes wrong
-  CLIENT_ONE_LEADER_XPRIV: xprv9s21ZrQH143K3JA1mzQpYzUX5zZYEos7hghmQAG1D8rhdhm3fQzFRp4NjFRQ2jvdkWnvstYJw3P5BhV4ytrg49MEu9m3zfkjziDTiKUcxtr
-  CLIENT_TWO_LEADER_XPRIV: xprv9s21ZrQH143K386fSgjYrNdfEUHpjUEjMckdrh6d3sv4pojsfEgVoTGybefJgr2GN6pTpu6M4Pv7VWTRQuFAw741s22eaZiomKMbLrYijBh
-  BLOCK_HEADERS_SERVICE_URL: ${{ secrets.BLOCK_HEADERS_SERVICE_URL }}
-  BLOCK_HEADERS_SERVICE_AUTH_TOKEN: ${{ secrets.BLOCK_HEADERS_SERVICE_AUTH_TOKEN }}
+  workflow_dispatch:
+    inputs:
+      keep_instances:
+        description: 'When should it keep instances created during tests?'
+        required: true
+        default: 'never'
+        type: choice
+        options:
+          - 'always'
+          - 'failure'
+          - 'never'
+  pull_request_target:
+    types: [labeled]
 
 jobs:
-  check-balance:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+  release:
+    if: >
+      (github.event_name == 'workflow_dispatch') ||
+      (github.event_name == 'pull_request_target' && github.event.label.name == 'regression-tests')
+    uses: bactions/workflows/.github/workflows/release-go-server.yml@main
+    with:
+      ref: ${{ github.head_ref || github.ref }}
+      version: ${{ github.run_id }}-${{ github.run_attempt }}
+      os: linux
+      cgo_enabled: true
+      release_binaries: false
+      release_create: false
+    secrets:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Install Go from go.mod
-        uses: actions/setup-go@v5
-        with:
-          go-version-file: spv-wallet-regression/go.mod
-
-      - name: Check Master Balance
-        run: |
-          cd spv-wallet-regression
-          go run ./cmd/check-balance/check_balance.go
-        env:
-          MASTER_INSTANCE_URL: ${{ secrets.MASTER_INSTANCE_URL }}
-          MASTER_INSTANCE_XPRIV: ${{ secrets.MASTER_INSTANCE_XPRIV }}
-
-  preparation:
-    runs-on: ubuntu-latest
-    env:
-      IMAGE_TAG: ${{ github.event.client_payload.image_tag }}
-    outputs:
-      app_status: ${{ steps.wait_for_apps.outputs.app_status }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          repository: 4chain-ag/spv-wallet-regression
-
-      - name: Cache ArgoCD CLI
-        id: argocd-cache
-        uses: actions/cache@v4
-        with:
-          path: /usr/local/bin/argocd
-          key: argocd-v2.11.8
-
-      - name: Install ArgoCD CLI
-        if: steps.argocd-cache.outputs.cache-hit != 'true'
-        run: |
-          curl -sLO https://github.com/argoproj/argo-cd/releases/download/v2.11.8/argocd-linux-amd64
-          chmod +x argocd-linux-amd64
-          sudo mv argocd-linux-amd64 /usr/local/bin/argocd
-
-      - name: Log in to ArgoCD
-        env:
-          ARGOCD_SERVER: ${{ secrets.ARGOCD_SERVER }}
-          ARGOCD_USERNAME: ${{ secrets.ARGOCD_USERNAME }}
-          ARGOCD_PASSWORD: ${{ secrets.ARGOCD_PASSWORD }}
-        run: |
-          argocd login $ARGOCD_SERVER --username $ARGOCD_USERNAME --password $ARGOCD_PASSWORD --insecure --grpc-web
-
-      - name: Deploy SQLite Instance
-        run: |
-          DOMAIN_NAME="${CLIENT_ONE_URL}"
-          argocd app create reg-sl-${TEST_ID} \
-            --repo https://github.com/${{ github.repository }} \
-            --path charts/spv-wallet-regression-sqlite \
-            --dest-server https://kubernetes.default.svc \
-            --dest-namespace sqlite-instance-${TEST_ID} \
-            --revision HEAD \
-            --sync-policy automated \
-            --sync-option CreateNamespace=true \
-            --upsert \
-            --grpc-web \
-            --helm-set global.domainName=${DOMAIN_NAME} \
-            --helm-set spv-wallet-stack.spv-wallet.image.tag=${{ env.IMAGE_TAG }} \
-            --helm-set spv-wallet-stack.spv-wallet.image.repository=bsvb/spv-wallet \
-            --helm-set spv-wallet-stack.spv-wallet.config.block_headers_service.url=${{ env.BLOCK_HEADERS_SERVICE_URL }} \
-            --helm-set spv-wallet-stack.spv-wallet.config.block_headers_service.auth_token=${{ env.BLOCK_HEADERS_SERVICE_AUTH_TOKEN }} \
-            --helm-set spv-wallet-stack.spv-wallet.config.paymail.beef.block_headers_service_url=${{ env.BLOCK_HEADERS_SERVICE_URL }}/api/v1/chain/merkleroot/verify \
-            --helm-set spv-wallet-stack.spv-wallet.config.paymail.beef.block_headers_service_auth_token=${{ env.BLOCK_HEADERS_SERVICE_AUTH_TOKEN }}
-        shell: bash
-
-      - name: Deploy Postgres Instance
-        run: |
-          DOMAIN_NAME="${CLIENT_TWO_URL}"
-          argocd app create reg-pg-${TEST_ID} \
-            --repo https://github.com/${{ github.repository }} \
-            --path charts/spv-wallet-regression-postgres \
-            --dest-server https://kubernetes.default.svc \
-            --dest-namespace postgres-instance-${TEST_ID} \
-            --revision HEAD \
-            --sync-policy automated \
-            --sync-option CreateNamespace=true \
-            --upsert \
-            --grpc-web \
-            --helm-set global.domainName=${DOMAIN_NAME} \
-            --helm-set spv-wallet-stack.spv-wallet.image.tag=${{ env.IMAGE_TAG }} \
-            --helm-set spv-wallet-stack.spv-wallet.image.repository=bsvb/spv-wallet \
-            --helm-set spv-wallet-stack.spv-wallet.config.block_headers_service.url=${{ env.BLOCK_HEADERS_SERVICE_URL }} \
-            --helm-set spv-wallet-stack.spv-wallet.config.block_headers_service.auth_token=${{ env.BLOCK_HEADERS_SERVICE_AUTH_TOKEN }} \
-            --helm-set spv-wallet-stack.spv-wallet.config.paymail.beef.block_headers_service_url=${{ env.BLOCK_HEADERS_SERVICE_URL }}/api/v1/chain/merkleroot/verify \
-            --helm-set spv-wallet-stack.spv-wallet.config.paymail.beef.block_headers_service_auth_token=${{ env.BLOCK_HEADERS_SERVICE_AUTH_TOKEN }}
-        shell: bash
-
-      - name: Wait for Applications to be Healthy
-        id: wait_for_apps
-        run: |
-          sleep 120
-          for i in {1..3}; do
-            STATUS_SQLITE=$(argocd app get reg-sl-${TEST_ID} --grpc-web -o json | jq -r '.status.health.status')
-            STATUS_POSTGRES=$(argocd app get reg-pg-${TEST_ID} --grpc-web -o json | jq -r '.status.health.status')
-            SYNC_SQLITE=$(argocd app get reg-sl-${TEST_ID} --grpc-web -o json | jq -r '.status.sync.status')
-            SYNC_POSTGRES=$(argocd app get reg-pg-${TEST_ID} --grpc-web -o json | jq -r '.status.sync.status')
-            if [[ "$STATUS_SQLITE" == "Healthy" && "$STATUS_POSTGRES" == "Healthy" && "$SYNC_SQLITE" == "Synced" && "$SYNC_POSTGRES" == "Synced" ]]; then
-              echo "Both applications are synced and healthy"
-              echo "app_status=healthy" >> $GITHUB_OUTPUT
-              break
-            fi
-            echo "Waiting for applications to be healthy and synced..."
-            sleep 120
-            if [[ $i -eq 3 ]]; then
-              echo "Applications did not become healthy and synced in time"
-              echo "app_status=unhealthy" >> $GITHUB_OUTPUT
-            fi
-          done
-        shell: bash
-
-  running-tests:
-    runs-on: ubuntu-latest
-    needs: preparation
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          repository: 4chain-ag/spv-wallet-regression
-          path: spv-wallet-regression
-
-      - name: Install Go from go.mod
-        uses: actions/setup-go@v5
-        with:
-          go-version-file: spv-wallet-regression/go.mod
-
-      - name: Run Operator
-        id: run_operator
-
-        run: |
-          cd spv-wallet-regression
-          go run ./cmd/operator/main.go
-        shell: bash
-        env:
-          MASTER_INSTANCE_URL: ${{ secrets.MASTER_INSTANCE_URL }}
-          MASTER_INSTANCE_XPRIV: ${{ secrets.MASTER_INSTANCE_XPRIV }}
-
-      - name: Install Task
-        run: |
-          sudo sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
-        shell: bash
-
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          repository: bitcoin-sv/spv-wallet-go-client
-          path: go-client
-
-      - name: Run go-client Tests
-        run: |
-          cd go-client/regression_tests
-          task run_regression_tests
-        shell: bash
-        env:
-          CLIENT_ONE_URL: https://${{env.CLIENT_ONE_URL}}
-          CLIENT_TWO_URL: https://${{env.CLIENT_TWO_URL}}
-
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          repository: bitcoin-sv/spv-wallet-js-client
-          path: js-client
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22.1.0'
-      - name: Install Dependencies
-        run: |
-          cd js-client
-          npm install
-        shell: bash
-
-      - name: Run js-client Tests
-        run: |
-          cd js-client/src/regression_tests
-          task run_regression_tests
-        shell: bash
-        env:
-          CLIENT_ONE_URL: https://${{env.CLIENT_ONE_URL}}
-          CLIENT_TWO_URL: https://${{env.CLIENT_TWO_URL}}
-
-  determine-status:
-    runs-on: ubuntu-latest
-    needs: [preparation, running-tests]
-    if: always()
-    steps:
-      - name: Determine Status
-        run: |
-          # Check the result of the running-tests job
-          if [[ "${{ needs.running-tests.result }}" == "failure" ]]; then
-            echo "failure" > test_status.txt
-            echo "The running-tests job has failed."
-          else
-            echo "success" > test_status.txt
-            echo "The running-tests job succeeded."
-          fi
-        shell: bash
-
-      - name: Upload Test Status Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ needs.running-tests.result }}_${{ github.run_id }}_${{ github.event.client_payload.run_id }}
-          path: test_status.txt
-
-  fetch-logs:
-    runs-on: ubuntu-latest
-    needs: determine-status
-    if: always()
-    steps:
-      - name: Cache ArgoCD CLI
-        id: argocd-cache
-        uses: actions/cache@v4
-        with:
-          path: /usr/local/bin/argocd
-          key: argocd-v2.11.8
-
-      - name: Install ArgoCD CLI
-        if: steps.argocd-cache.outputs.cache-hit != 'true'
-        run: |
-          curl -sLO https://github.com/argoproj/argo-cd/releases/download/v2.11.8/argocd-linux-amd64
-          chmod +x argocd-linux-amd64
-          sudo mv argocd-linux-amd64 /usr/local/bin/argocd
-
-      - name: Log in to ArgoCD
-        env:
-          ARGOCD_SERVER: ${{ secrets.ARGOCD_SERVER }}
-          ARGOCD_USERNAME: ${{ secrets.ARGOCD_USERNAME }}
-          ARGOCD_PASSWORD: ${{ secrets.ARGOCD_PASSWORD }}
-        run: |
-          argocd login $ARGOCD_SERVER --username $ARGOCD_USERNAME --password $ARGOCD_PASSWORD --insecure --grpc-web
-
-      - name: Fetch Logs
-        run: |
-          argocd app logs reg-sl-${{ github.event.client_payload.run_id }} --grpc-web > reg-sl-${{ github.event.client_payload.run_id }}.log
-          argocd app logs reg-pg-${{ github.event.client_payload.run_id }} --grpc-web > reg-pg-${{ github.event.client_payload.run_id }}.log
-        shell: bash
-
-      - name: Upload Logs
-        uses: actions/upload-artifact@v4
-        with:
-          name: application-logs
-          path: |
-            reg-sl-${{ github.event.client_payload.run_id }}.log
-            reg-pg-${{ github.event.client_payload.run_id }}.log
-
-  cleanup:
-    runs-on: ubuntu-latest
-    needs: [preparation, running-tests, fetch-logs]
-    if: success()
-    steps:
-      - name: Cache ArgoCD CLI
-        id: argocd-cache
-        uses: actions/cache@v4
-        with:
-          path: /usr/local/bin/argocd
-          key: argocd-v2.11.8
-
-      - name: Install ArgoCD CLI
-        if: steps.argocd-cache.outputs.cache-hit != 'true'
-        run: |
-          curl -sLO https://github.com/argoproj/argo-cd/releases/download/v2.11.8/argocd-linux-amd64
-          chmod +x argocd-linux-amd64
-          sudo mv argocd-linux-amd64 /usr/local/bin/argocd
-
-      - name: Log in to ArgoCD
-        env:
-          ARGOCD_SERVER: ${{ secrets.ARGOCD_SERVER }}
-          ARGOCD_USERNAME: ${{ secrets.ARGOCD_USERNAME }}
-          ARGOCD_PASSWORD: ${{ secrets.ARGOCD_PASSWORD }}
-        run: |
-          argocd login $ARGOCD_SERVER --username $ARGOCD_USERNAME --password $ARGOCD_PASSWORD --insecure --grpc-web
-
-      - name: Remove SQLite Instance
-        run: argocd app delete reg-sl-${{ github.event.client_payload.run_id }} --yes --grpc-web
-
-      - name: Remove Postgres Instance
-        run: argocd app delete reg-pg-${{ github.event.client_payload.run_id }} --yes --grpc-web
+  test:
+    needs: release
+    uses: 4chain-ag/spv-wallet-regression/.github/workflows/run-regression-tests.yaml@main
+    with:
+      image_tag: ${{ needs.release.outputs.imageVersion }}
+      run_id: '${{ github.run_id }}-${{ github.run_attempt }}'
+      keep_instances: ${{ inputs.keep_instances }}
+    secrets:
+      MASTER_INSTANCE_URL: ${{ secrets.REG_MASTER_INSTANCE_URL }}
+      MASTER_INSTANCE_XPRIV: ${{ secrets.REG_MASTER_INSTANCE_XPRIV }}
+      BLOCK_HEADERS_SERVICE_URL: ${{ secrets.REG_BLOCK_HEADERS_SERVICE_URL }}
+      BLOCK_HEADERS_SERVICE_AUTH_TOKEN: ${{ secrets.REG_BLOCK_HEADERS_SERVICE_AUTH_TOKEN }}
+      ARGOCD_SERVER: ${{ secrets.REG_ARGOCD_SERVER }}
+      ARGOCD_USERNAME: ${{ secrets.REG_ARGOCD_USERNAME }}
+      ARGOCD_PASSWORD: ${{ secrets.REG_ARGOCD_PASSWORD }}
