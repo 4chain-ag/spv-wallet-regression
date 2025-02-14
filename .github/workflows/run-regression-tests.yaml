@@ -93,7 +93,7 @@ env:
   BLOCK_HEADERS_SERVICE_URL: ${{ secrets.BLOCK_HEADERS_SERVICE_URL }}
   BLOCK_HEADERS_SERVICE_AUTH_TOKEN: ${{ secrets.BLOCK_HEADERS_SERVICE_AUTH_TOKEN }}
 
-  ARGO_CD_CLI_VERSION: v2.11.8
+  ARGO_CD_CLI_VERSION: v2.14.2
 
   REG_TESTS_GH_REPO: 4chain-ag/spv-wallet-regression
 
@@ -153,7 +153,7 @@ jobs:
           ARGOCD_USERNAME: ${{ secrets.ARGOCD_USERNAME }}
           ARGOCD_PASSWORD: ${{ secrets.ARGOCD_PASSWORD }}
         run: |
-          argocd login $ARGOCD_SERVER --username $ARGOCD_USERNAME --password $ARGOCD_PASSWORD --insecure --grpc-web
+          argocd login $ARGOCD_SERVER --username $ARGOCD_USERNAME --password $ARGOCD_PASSWORD --grpc-web
 
       - name: Deploy SQLite Instance
         run: |
