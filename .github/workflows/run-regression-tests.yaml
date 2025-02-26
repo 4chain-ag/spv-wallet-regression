@@ -174,7 +174,8 @@ jobs:
             --helm-set spv-wallet-stack.spv-wallet.config.block_headers_service.url=${{ env.BLOCK_HEADERS_SERVICE_URL }} \
             --helm-set spv-wallet-stack.spv-wallet.config.block_headers_service.auth_token=${{ env.BLOCK_HEADERS_SERVICE_AUTH_TOKEN }} \
             --helm-set spv-wallet-stack.spv-wallet.config.paymail.beef.block_headers_service_url=${{ env.BLOCK_HEADERS_SERVICE_URL }}/api/v1/chain/merkleroot/verify \
-            --helm-set spv-wallet-stack.spv-wallet.config.paymail.beef.block_headers_service_auth_token=${{ env.BLOCK_HEADERS_SERVICE_AUTH_TOKEN }}
+            --helm-set spv-wallet-stack.spv-wallet.config.paymail.beef.block_headers_service_auth_token=${{ env.BLOCK_HEADERS_SERVICE_AUTH_TOKEN }} \
+            --helm-set spv-wallet-stack.spv-wallet.config.arc.callback.enabled=false
         shell: bash
 
       - name: Deploy Postgres Instance
@@ -196,7 +197,8 @@ jobs:
             --helm-set spv-wallet-stack.spv-wallet.config.block_headers_service.url=${{ env.BLOCK_HEADERS_SERVICE_URL }} \
             --helm-set spv-wallet-stack.spv-wallet.config.block_headers_service.auth_token=${{ env.BLOCK_HEADERS_SERVICE_AUTH_TOKEN }} \
             --helm-set spv-wallet-stack.spv-wallet.config.paymail.beef.block_headers_service_url=${{ env.BLOCK_HEADERS_SERVICE_URL }}/api/v1/chain/merkleroot/verify \
-            --helm-set spv-wallet-stack.spv-wallet.config.paymail.beef.block_headers_service_auth_token=${{ env.BLOCK_HEADERS_SERVICE_AUTH_TOKEN }}
+            --helm-set spv-wallet-stack.spv-wallet.config.paymail.beef.block_headers_service_auth_token=${{ env.BLOCK_HEADERS_SERVICE_AUTH_TOKEN }} \
+            --helm-set spv-wallet-stack.spv-wallet.config.arc.callback.enabled=false
         shell: bash
 
       - name: Wait for Applications to be Healthy
